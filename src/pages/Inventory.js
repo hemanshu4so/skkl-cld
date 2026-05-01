@@ -5,6 +5,7 @@ import {
   doc, query, where, updateDoc, serverTimestamp
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../hooks/useToast";
 
 const CATEGORIES = ["Gold", "Silver", "Diamond", "Other"];
 const KARATS = ["24K", "22K", "18K", "14K", "92.5", "80", "Sterling", "N/A"];
@@ -21,6 +22,7 @@ const emptyForm = {
 
 export default function Inventory() {
   const { userData } = useAuth();
+  const { toast } = useToast();
   const shopId = userData?.shopId;
 
   const [products, setProducts] = useState([]);
@@ -30,8 +32,6 @@ export default function Inventory() {
   const [filterCat, setFilterCat] = useState("All");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
-
   // Load products
   useEffect(() => {
     if (!shopId) return;
@@ -44,7 +44,7 @@ export default function Inventory() {
 
   const handleSave = async () => {
     if (!form.name || !form.weight) {
-      setMsg("⚠️ Product name and weight are required");
+      toast("Product name and weight are required", "warn");
       return;
     }
     setSaving(true);
@@ -67,19 +67,18 @@ export default function Inventory() {
 
       if (editId) {
         await updateDoc(doc(db, "products", editId), data);
-        setMsg("✅ Product updated!");
+        toast("Product updated!", "success");
       } else {
         data.createdAt = serverTimestamp();
         await addDoc(collection(db, "products"), data);
-        setMsg("✅ Product added!");
+        toast("Product added!", "success");
       }
 
       setForm(emptyForm);
       setEditId(null);
       setShowForm(false);
-      setTimeout(() => setMsg(""), 2000);
-    } catch (err) {
-      setMsg("❌ Error: " + err.message);
+      } catch (err) {
+      toast("Error: " + err.message, "error");
     }
     setSaving(false);
   };
@@ -219,11 +218,7 @@ export default function Inventory() {
             />
           </div>
 
-          {msg && (
-            <div style={{ marginBottom: "14px", padding: "10px 14px", background: msg.startsWith("✅") ? "#E8F5E9" : "#FFF3E0", borderRadius: "8px", fontSize: "13px" }}>
-              {msg}
-            </div>
-          )}
+          
 
           <button
             onClick={handleSave}
