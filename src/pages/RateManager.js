@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, orderBy, limit, onSnapshot, addDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, query, where, orderBy, limit, onSnapshot, addDoc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 
