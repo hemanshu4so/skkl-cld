@@ -1,0 +1,203 @@
+rules_version = '2';
+
+// SKKL Jewellery CRM/ERP — Firestore Security Rules
+//
+// Data model assumptions (matches src/firebase.js + src/context/AuthContext.jsx):
+//   /superadmins/{uid}                 -> super-admin profile (role implicit)
+//   /users/{uid}                       -> { name, email, role, shopId, pin? }
+//   /shops/{shopId}                    -> shop config + trial/subscription
+//   /plans/{planId}                    -> superadmin-managed billing plans
+//   /payments/{paymentId}              -> superadmin-managed shop payments
+//   /products/{productId}              -> { shopId, ... } (inventory)
+//   /customers/{customerId}            -> { shopId, ... }
+//   /sales/{saleId}                    -> { shopId, ... }
+//   /schemes/{schemeId}                -> { shopId, ... }
+//   /repairs/{repairId}                -> { shopId, ... }
+//   /purchases/{purchaseId}            -> { shopId, ... }
+//   /rates/{shopId}                    -> single doc per shop
+//   /rateHistory/{historyId}           -> { shopId, ... }
+//   /activityLogs/{logId}              -> { shopId, uid, action, ... }
+//
+// Conventions:
+//   - Every shop-scoped doc must contain `shopId` matching the writer's user.shopId.
+//   - Roles inside a shop: 'admin' (full), 'manager', 'cashier', 'staff' (read-only by default).
+//   - Superadmins bypass all shop scoping.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/superadmins/$(request.auth.uid));
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function userShopId() {
+      return userDoc().shopId;
+    }
+
+    function userRole() {
+      return userDoc().role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userRole() == 'admin';
+    }
+
+    function isManagerOrAbove() {
+      return isSignedIn() && (userRole() == 'admin' || userRole() == 'manager');
+    }
+
+    function isStaffOrAbove() {
+      return isSignedIn()
+        && (userRole() == 'admin' || userRole() == 'manager'
+            || userRole() == 'cashier' || userRole() == 'staff');
+    }
+
+    function inSameShop(shopId) {
+      return isSignedIn() && userShopId() == shopId;
+    }
+
+    // The doc the client wants to write must carry the writer's shopId
+    function writingForOwnShop() {
+      return request.resource.data.shopId == userShopId();
+    }
+
+    // The existing doc must belong to the writer's shop
+    function existingDocIsMyShop() {
+      return resource.data.shopId == userShopId();
+    }
+
+    // ---------- superadmins ----------
+    match /superadmins/{uid} {
+      // Only the superadmin themself or another superadmin can read.
+      allow read: if isSuperAdmin() && request.auth.uid == uid || isSuperAdmin();
+      // Bootstrapping superadmins is a manual operation in the Firebase console.
+      allow write: if false;
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      // Read your own profile; superadmins read all; admins read users in their shop.
+      allow read: if isSignedIn() && (
+        request.auth.uid == uid
+        || isSuperAdmin()
+        || (isAdmin() && resource.data.shopId == userShopId())
+      );
+
+      // Create user docs: only superadmin (creating shop owner) or shop admin (creating staff)
+      allow create: if isSuperAdmin()
+        || (isAdmin() && request.resource.data.shopId == userShopId());
+
+      // Update your own non-sensitive fields, or admin updating staff in same shop
+      allow update: if isSignedIn() && (
+        request.auth.uid == uid
+        || isSuperAdmin()
+        || (isAdmin() && resource.data.shopId == userShopId()
+            && request.resource.data.shopId == userShopId())
+      );
+
+      allow delete: if isSuperAdmin()
+        || (isAdmin() && resource.data.shopId == userShopId() && request.auth.uid != uid);
+    }
+
+    // ---------- shops ----------
+    match /shops/{shopId} {
+      allow read: if isSuperAdmin() || inSameShop(shopId);
+      allow create, delete: if isSuperAdmin();
+      // Admins can update their own shop's company info; superadmin can update anything.
+      allow update: if isSuperAdmin()
+        || (isAdmin() && inSameShop(shopId));
+    }
+
+    // ---------- plans (superadmin only) ----------
+    match /plans/{planId} {
+      allow read: if isSignedIn();      // any signed-in user can see what's available
+      allow write: if isSuperAdmin();
+    }
+
+    // ---------- payments (superadmin only) ----------
+    match /payments/{paymentId} {
+      allow read: if isSuperAdmin()
+        || (isSignedIn() && resource.data.shopId == userShopId());
+      allow write: if isSuperAdmin();
+    }
+
+    // ---------- shop-scoped collections ----------
+    // Helper macro: shop-scoped read + role-gated write
+    match /products/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      allow create: if isManagerOrAbove() && writingForOwnShop();
+      allow update: if isManagerOrAbove() && existingDocIsMyShop() && writingForOwnShop();
+      allow delete: if isAdmin() && existingDocIsMyShop();
+    }
+
+    match /customers/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      allow create: if isStaffOrAbove() && writingForOwnShop();
+      allow update: if isStaffOrAbove() && existingDocIsMyShop() && writingForOwnShop();
+      allow delete: if isManagerOrAbove() && existingDocIsMyShop();
+    }
+
+    match /sales/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      // Cashiers/staff can create bills; nobody can edit a finalized bill (use credit notes).
+      allow create: if isStaffOrAbove() && writingForOwnShop();
+      allow update: if isAdmin() && existingDocIsMyShop() && writingForOwnShop();
+      allow delete: if isAdmin() && existingDocIsMyShop();
+    }
+
+    match /schemes/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      allow create: if isStaffOrAbove() && writingForOwnShop();
+      allow update: if isStaffOrAbove() && existingDocIsMyShop() && writingForOwnShop();
+      allow delete: if isManagerOrAbove() && existingDocIsMyShop();
+    }
+
+    match /repairs/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      allow create, update: if isStaffOrAbove() && writingForOwnShop()
+        && (resource == null || existingDocIsMyShop());
+      allow delete: if isManagerOrAbove() && existingDocIsMyShop();
+    }
+
+    match /purchases/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      allow create, update: if isManagerOrAbove() && writingForOwnShop()
+        && (resource == null || existingDocIsMyShop());
+      allow delete: if isAdmin() && existingDocIsMyShop();
+    }
+
+    // /rates/{shopId} — single doc per shop, doc id IS the shopId
+    match /rates/{shopId} {
+      allow read: if isSuperAdmin() || inSameShop(shopId);
+      allow write: if isManagerOrAbove() && inSameShop(shopId)
+        && request.resource.data.keys().hasAny(['goldRate','silverRate','updatedAt','updatedBy']);
+    }
+
+    match /rateHistory/{id} {
+      allow read: if isSuperAdmin() || (isStaffOrAbove() && existingDocIsMyShop());
+      allow create: if isManagerOrAbove() && writingForOwnShop();
+      allow update, delete: if false;   // history is append-only
+    }
+
+    match /activityLogs/{id} {
+      allow read: if isSuperAdmin() || (isManagerOrAbove() && existingDocIsMyShop());
+      allow create: if isStaffOrAbove() && writingForOwnShop();
+      allow update, delete: if false;   // logs are append-only
+    }
+
+    // Default deny: anything not matched above is rejected.
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
