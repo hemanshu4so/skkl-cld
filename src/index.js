@@ -1,16 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { AuthProvider } from './context/AuthContext';   // ⬅️ aa add kar
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// AuthProvider is already wrapped inside App.js; do NOT wrap it again here
+// (doubling it duplicates the onAuthStateChanged listener and the context tree).
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <AuthProvider>           {/* ⬅️ aa add kar */}
-      <App />
-    </AuthProvider>          {/* ⬅️ aa add kar */}
+    <App />
   </React.StrictMode>
 );
 
