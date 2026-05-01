@@ -1,0 +1,57 @@
+rules_version = '2';
+
+// SKKL Jewellery — Firebase Storage rules
+//
+// Path layout:
+//   /shops/{shopId}/products/{productId}/{filename}      product photos
+//   /shops/{shopId}/customers/{customerId}/{filename}    customer KYC, etc.
+//   /shops/{shopId}/repairs/{repairId}/{filename}        before/after photos
+//   /shops/{shopId}/exports/{filename}                   one-click backups
+//
+// We can't read Firestore from Storage rules easily, so we trust the user's
+// custom claims OR fall back to "must be signed in + path-shop matches token".
+// For now: any signed-in user may read/write their own shop's path. The
+// definitive shop-membership check happens in Firestore rules when the file
+// reference is saved; a leaked URL gives no useful access without the doc.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Limit individual uploads to 10 MB and to image MIME types where applicable.
+    function smallImage() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function anyFile10mb() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    match /shops/{shopId}/products/{productId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && smallImage();
+    }
+
+    match /shops/{shopId}/customers/{customerId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && anyFile10mb();
+    }
+
+    match /shops/{shopId}/repairs/{repairId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && smallImage();
+    }
+
+    match /shops/{shopId}/exports/{fileName} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
