@@ -1,51 +1,49 @@
-import { useState, useEffect } from "react";
+// src/layout/MainLayout.js
+import { useState, useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import LockScreen from "./LockScreen";
 
+// Auto-lock after this much idle time. 60s was too aggressive; 5 min is the
+// industry-standard for in-store POS.
+const IDLE_LOCK_MS = 5 * 60 * 1000;
+
 export default function MainLayout() {
-  // 🔒 Load lock state from localStorage
-  const [locked, setLocked] = useState(
-    localStorage.getItem("locked") === "true"
-  );
+  const [locked, setLocked] = useState(localStorage.getItem("locked") === "true");
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    let timer;
+    if (locked) return;
 
-    const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
+    const reset = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
         setLocked(true);
-        localStorage.setItem("locked", "true"); // 🔥 SAVE LOCK
-      }, 60000); // 1 min
+        localStorage.setItem("locked", "true");
+      }, IDLE_LOCK_MS);
     };
 
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("keydown", resetTimer);
-
-    resetTimer();
+    const evts = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    evts.forEach((ev) => window.addEventListener(ev, reset, { passive: true }));
+    reset();
 
     return () => {
-      window.removeEventListener("mousemove", resetTimer);
-      window.removeEventListener("keydown", resetTimer);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      evts.forEach((ev) => window.removeEventListener(ev, reset));
     };
-  }, []);
+  }, [locked]);
 
-  // 🔓 Unlock function
   const handleUnlock = () => {
     setLocked(false);
-    localStorage.setItem("locked", "false"); // 🔥 REMOVE LOCK
+    localStorage.setItem("locked", "false");
   };
 
-  // 🔒 Lock screen show
-  if (locked) {
-    return <LockScreen onUnlock={handleUnlock} />;
-  }
+  if (locked) return <LockScreen onUnlock={handleUnlock} />;
 
   return (
     <div style={{ display: "flex" }}>
       <Sidebar />
-      <div style={{ flex: 1, padding: "20px" }}>
+      <div style={{ flex: 1, padding: 20 }}>
         <Outlet />
       </div>
     </div>
