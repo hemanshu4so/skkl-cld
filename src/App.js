@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./hooks/useToast";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // 🔹 Shop App
 import MainLayout from "./layout/MainLayout";
@@ -46,6 +47,10 @@ function ProtectedRoute({ children, requireRole }) {
   return children;
 }
 
+// Small helper: wrap each leaf page in its own ErrorBoundary so a render
+// failure in one screen doesn't blank the whole app.
+const safe = (el) => <ErrorBoundary>{el}</ErrorBoundary>;
+
 function App() {
   return (
     <AuthProvider>
@@ -53,8 +58,8 @@ function App() {
         <Router>
           <Routes>
             {/* 🔐 PUBLIC */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/renew" element={<Renew />} />
+            <Route path="/login" element={safe(<Login />)} />
+            <Route path="/renew" element={safe(<Renew />)} />
 
             {/* ⚡ SUPER ADMIN */}
             <Route
@@ -65,13 +70,13 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<SuperAdminDashboard />} />
-              <Route path="create-shop" element={<CreateShop />} />
-              <Route path="shops" element={<ShopsList />} />
-              <Route path="shop/:id" element={<ShopDetails />} />
-              <Route path="edit-shop/:id" element={<EditShop />} />
-              <Route path="plans" element={<Plans />} />
-              <Route path="payments" element={<Payments />} />
+              <Route index element={safe(<SuperAdminDashboard />)} />
+              <Route path="create-shop" element={safe(<CreateShop />)} />
+              <Route path="shops" element={safe(<ShopsList />)} />
+              <Route path="shop/:id" element={safe(<ShopDetails />)} />
+              <Route path="edit-shop/:id" element={safe(<EditShop />)} />
+              <Route path="plans" element={safe(<Plans />)} />
+              <Route path="payments" element={safe(<Payments />)} />
             </Route>
 
             {/* 🏪 SHOP ERP */}
@@ -83,16 +88,16 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Dashboard />} />
-              <Route path="customers" element={<Customers />} />
-              <Route path="inventory" element={<Inventory />} />
-              <Route path="billing" element={<Billing />} />
-              <Route path="schemes" element={<Schemes />} />
-              <Route path="repairs" element={<Repairs />} />
-              <Route path="purchases" element={<Purchases />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="rates" element={<RateManager />} />
-              <Route path="settings" element={<ShopSettings />} />
+              <Route index element={safe(<Dashboard />)} />
+              <Route path="customers" element={safe(<Customers />)} />
+              <Route path="inventory" element={safe(<Inventory />)} />
+              <Route path="billing" element={safe(<Billing />)} />
+              <Route path="schemes" element={safe(<Schemes />)} />
+              <Route path="repairs" element={safe(<Repairs />)} />
+              <Route path="purchases" element={safe(<Purchases />)} />
+              <Route path="reports" element={safe(<Reports />)} />
+              <Route path="rates" element={safe(<RateManager />)} />
+              <Route path="settings" element={safe(<ShopSettings />)} />
             </Route>
 
             {/* 404 */}
