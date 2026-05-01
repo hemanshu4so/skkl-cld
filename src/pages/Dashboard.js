@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import {
   collection, query, where, onSnapshot,
-  doc, getDoc, orderBy, limit, Timestamp
+  doc, orderBy, limit, Timestamp
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { Card, Button } from "../components/ui";
