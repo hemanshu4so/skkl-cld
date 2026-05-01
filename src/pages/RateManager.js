@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, orderBy, limit, onSnapshot, addDoc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../hooks/useToast";
 
 export default function RateManager() {
   const { userData } = useAuth();
+  const { toast } = useToast();
   const shopId = userData?.shopId;
 
   const [goldRate, setGoldRate] = useState("");
@@ -12,8 +14,6 @@ export default function RateManager() {
   const [currentRates, setCurrentRates] = useState(null);
   const [history, setHistory] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
-
   // Load current rates
   useEffect(() => {
     if (!shopId) return;
@@ -45,7 +45,7 @@ export default function RateManager() {
 
   const handleSave = async () => {
     if (!goldRate || !silverRate) {
-      setMsg("⚠️ Both rates are required");
+      toast("Both rates are required", "warn");
       return;
     }
     setSaving(true);
@@ -67,10 +67,9 @@ export default function RateManager() {
         updatedBy: userData?.name || "admin"
       });
 
-      setMsg("✅ Rates updated successfully!");
-      setTimeout(() => setMsg(""), 3000);
-    } catch (err) {
-      setMsg("❌ Error: " + err.message);
+      toast("Rates updated successfully!", "success");
+      } catch (err) {
+      toast("Error: " + err.message, "error");
     }
     setSaving(false);
   };
@@ -189,17 +188,7 @@ export default function RateManager() {
         {saving ? "Saving..." : "💾 Update Rates"}
       </button>
 
-      {msg && (
-        <div style={{
-          marginTop: "14px", padding: "12px 16px",
-          background: msg.startsWith("✅") ? "#E8F5E9" : "#FFF3E0",
-          border: `1px solid ${msg.startsWith("✅") ? "#A5D6A7" : "#FFCC80"}`,
-          borderRadius: "8px", fontSize: "14px",
-          color: msg.startsWith("✅") ? "#2E7D32" : "#E65100"
-        }}>
-          {msg}
-        </div>
-      )}
+      
 
       {/* Rate History */}
       {history.length > 0 && (

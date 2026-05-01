@@ -5,9 +5,11 @@ import {
   doc, updateDoc, serverTimestamp, arrayUnion
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../hooks/useToast";
 
 export default function Schemes() {
   const { userData } = useAuth();
+  const { toast } = useToast();
   const shopId = userData?.shopId;
 
   const [schemes, setSchemes] = useState([]);
@@ -22,8 +24,6 @@ export default function Schemes() {
   });
   const [customerSearch, setCustomerSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
-
   useEffect(() => {
     if (!shopId) return;
     const q = query(collection(db, "schemes"), where("shopId", "==", shopId));
@@ -51,7 +51,7 @@ export default function Schemes() {
 
   const handleSave = async () => {
     if (!form.schemeName || !form.monthlyAmount || !form.customerId) {
-      setMsg("⚠️ Fill all required fields"); return;
+      toast("Fill all required fields", "warn"); return;
     }
     setSaving(true);
     try {
@@ -69,15 +69,14 @@ export default function Schemes() {
         startDate: new Date().toISOString().split("T")[0],
         createdAt: serverTimestamp()
       });
-      setMsg("✅ Scheme created!"); setForm({ schemeName: "", type: "gold", duration: "11", monthlyAmount: "", customerId: "", customerName: "", customerPhone: "" });
+      toast("Scheme created!", "success"); setForm({ schemeName: "", type: "gold", duration: "11", monthlyAmount: "", customerId: "", customerName: "", customerPhone: "" });
       setCustomerSearch(""); setShowForm(false);
-      setTimeout(() => setMsg(""), 2000);
-    } catch (err) { setMsg("❌ " + err.message); }
+      } catch (err) { toast(err.message, "error"); }
     setSaving(false);
   };
 
   const handlePayment = async () => {
-    if (!payment.amount || !payment.month) { setMsg("⚠️ Fill amount and month"); return; }
+    if (!payment.amount || !payment.month) { toast("Fill amount and month", "warn"); return; }
     setSaving(true);
     try {
       await updateDoc(doc(db, "schemes", selected.id), {
@@ -88,11 +87,10 @@ export default function Schemes() {
           date: new Date().toISOString()
         })
       });
-      setMsg("✅ Payment recorded!");
+      toast("Payment recorded!", "success");
       setPayment({ amount: "", mode: "cash", month: "" });
       setShowPayment(false);
-      setTimeout(() => setMsg(""), 2000);
-    } catch (err) { setMsg("❌ " + err.message); }
+      } catch (err) { toast(err.message, "error"); }
     setSaving(false);
   };
 
@@ -172,7 +170,7 @@ export default function Schemes() {
             )}
           </div>
 
-          {msg && <div style={{ marginBottom: "12px", padding: "10px", background: "#E8F5E9", borderRadius: "8px", fontSize: "13px" }}>{msg}</div>}
+          
           <button onClick={handleSave} disabled={saving}
             style={{ padding: "11px 28px", fontSize: "14px", fontWeight: "700", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer" }}>
             {saving ? "Saving..." : "💾 Create Scheme"}
@@ -267,7 +265,7 @@ export default function Schemes() {
                     + Record Payment
                   </button>
                 )}
-                {msg && <div style={{ marginTop: "10px", padding: "8px 12px", background: "#E8F5E9", borderRadius: "8px", fontSize: "13px" }}>{msg}</div>}
+                
               </div>
             )}
           </div>

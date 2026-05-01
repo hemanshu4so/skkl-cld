@@ -5,6 +5,7 @@ import {
   doc, query, where, updateDoc, serverTimestamp, orderBy
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../hooks/useToast";
 
 const emptyForm = {
   name: "", phone: "", email: "", address: "",
@@ -13,6 +14,7 @@ const emptyForm = {
 
 export default function Customers() {
   const { userData } = useAuth();
+  const { toast } = useToast();
   const shopId = userData?.shopId;
 
   const [customers, setCustomers] = useState([]);
@@ -23,8 +25,6 @@ export default function Customers() {
   const [purchases, setPurchases] = useState([]);
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
-
   // Load customers
   useEffect(() => {
     if (!shopId) return;
@@ -55,7 +55,7 @@ export default function Customers() {
   }, [selected, shopId]);
 
   const handleSave = async () => {
-    if (!form.name || !form.phone) { setMsg("⚠️ Name and phone required"); return; }
+    if (!form.name || !form.phone) { toast("Name and phone required", "warn"); return; }
     setSaving(true);
     try {
       const data = {
@@ -72,16 +72,15 @@ export default function Customers() {
       };
       if (editId) {
         await updateDoc(doc(db, "customers", editId), data);
-        setMsg("✅ Customer updated!");
+        toast("Customer updated!", "success");
       } else {
         data.createdAt = serverTimestamp();
         await addDoc(collection(db, "customers"), data);
-        setMsg("✅ Customer added!");
+        toast("Customer added!", "success");
       }
       setForm(emptyForm); setEditId(null); setShowForm(false);
-      setTimeout(() => setMsg(""), 2000);
-    } catch (err) {
-      setMsg("❌ " + err.message);
+      } catch (err) {
+      toast(err.message, "error");
     }
     setSaving(false);
   };
@@ -191,7 +190,7 @@ export default function Customers() {
               }}
             />
           </div>
-          {msg && <div style={{ marginBottom: "12px", padding: "10px", background: "#E8F5E9", borderRadius: "8px", fontSize: "13px" }}>{msg}</div>}
+          
           <button
             onClick={handleSave} disabled={saving}
             style={{
