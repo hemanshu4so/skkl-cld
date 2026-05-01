@@ -113,6 +113,7 @@ export default function Dashboard() {
       let revenue = 0;
       snap.docs.forEach(d => { revenue += (d.data().total || 0); });
       setStats(s => ({ ...s, todaySales: snap.size, todayRevenue: revenue }));
+      setLoading(false);
     });
 
     // Customers
@@ -125,7 +126,7 @@ export default function Dashboard() {
     const repairQ = query(
       collection(db, "repairs"),
       where("shopId", "==", shopId),
-      where("status", "in", ["received", "in-progress"])
+      where("status", "in", ["received", "estimated", "approved", "in_progress", "ready"])
     );
     const unsubRepair = onSnapshot(repairQ, (snap) => {
       setStats(s => ({ ...s, pendingRepairs: snap.size }));
@@ -137,8 +138,7 @@ export default function Dashboard() {
       setStats(s => ({ ...s, activeSchemes: snap.size }));
     });
 
-    setLoading(false);
-
+    // loading flips inside the first sales snapshot above
     return () => {
       unsubSales(); unsubCust(); unsubRepair(); unsubScheme();
     };

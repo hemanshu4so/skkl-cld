@@ -6,13 +6,8 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { CATEGORIES, KARATS, ITEM_TYPES } from "../lib/constants";
 
-const CATEGORIES = ["Gold", "Silver", "Diamond", "Other"];
-const KARATS = ["24K", "22K", "18K", "14K", "92.5", "80", "Sterling", "N/A"];
-const ITEM_TYPES = [
-  "Ring", "Necklace", "Bracelet", "Earring", "Pendant", "Bangle",
-  "Chain", "Anklet", "Nose Pin", "Mangalsutra", "Kada", "Coin", "Bar", "Other"
-];
 
 const emptyForm = {
   name: "", itemType: "Ring", category: "Gold",

@@ -1,17 +1,26 @@
+// src/layout/Sidebar.js
+//
+// Tailwind sidebar using existing tokens (navy/gold) + lucide-react icons.
+// (lucide-react was already in package.json but unused.)
+
 import { useNavigate, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard, Users, Package, ReceiptText, Wallet,
+  Target, Wrench, BarChart3, TrendingUp, Settings, Crown, LogOut,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-const menuItems = [
-  { icon: "🏠", label: "Dashboard",    path: "/" },
-  { icon: "👤", label: "Customers",    path: "/customers" },
-  { icon: "📦", label: "Inventory",    path: "/inventory" },
-  { icon: "🧾", label: "Billing",      path: "/billing" },
-  { icon: "💰", label: "Purchases",    path: "/purchases" },
-  { icon: "🎯", label: "Schemes",      path: "/schemes" },
-  { icon: "🔧", label: "Repairs",      path: "/repairs" },
-  { icon: "📊", label: "Reports",      path: "/reports" },
-  { icon: "📈", label: "Gold/Silver Rates", path: "/rates" },
-  { icon: "⚙️", label: "Settings",    path: "/settings" },
+const MENU = [
+  { Icon: LayoutDashboard, label: "Dashboard",         path: "/" },
+  { Icon: Users,           label: "Customers",         path: "/customers" },
+  { Icon: Package,         label: "Inventory",         path: "/inventory" },
+  { Icon: ReceiptText,     label: "Billing",           path: "/billing" },
+  { Icon: Wallet,          label: "Purchases",         path: "/purchases" },
+  { Icon: Target,          label: "Schemes",           path: "/schemes" },
+  { Icon: Wrench,          label: "Repairs",           path: "/repairs" },
+  { Icon: BarChart3,       label: "Reports",           path: "/reports" },
+  { Icon: TrendingUp,      label: "Gold/Silver Rates", path: "/rates" },
+  { Icon: Settings,        label: "Settings",          path: "/settings" },
 ];
 
 export default function Sidebar() {
@@ -24,157 +33,98 @@ export default function Sidebar() {
     navigate("/login");
   };
 
-  const isActive = (path) => {
-    if (path === "/") return location.pathname === "/";
-    return location.pathname.startsWith(path);
-  };
+  const isActive = (path) =>
+    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
   return (
-    <div style={{
-      width: "230px",
-      minWidth: "230px",
-      background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)",
-      color: "#fff",
-      display: "flex",
-      flexDirection: "column",
-      height: "100vh",
-      justifyContent: "space-between",
-      position: "sticky",
-      top: 0,
-      overflowY: "auto",
-      boxShadow: "2px 0 12px rgba(0,0,0,0.3)"
-    }}>
-
-      {/* TOP: Logo + Shop Name */}
+    <aside
+      className="sticky top-0 h-screen overflow-y-auto w-[230px] min-w-[230px] flex flex-col justify-between text-white"
+      style={{
+        background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)",
+        boxShadow: "2px 0 12px rgba(0,0,0,0.3)",
+      }}
+    >
       <div>
-        <div style={{
-          padding: "20px 16px",
-          borderBottom: "1px solid rgba(255,215,0,0.2)",
-          background: "rgba(255,215,0,0.05)"
-        }}>
-          <div style={{ fontSize: "22px", marginBottom: "4px" }}>💎</div>
-          <div style={{
-            fontSize: "16px",
-            fontWeight: "700",
-            color: "#FFD700",
-            letterSpacing: "0.5px"
-          }}>
+        <div className="px-4 py-5 border-b border-gold-500/20" style={{ background: "rgba(255,215,0,0.05)" }}>
+          <div className="text-2xl mb-1">💎</div>
+          <div className="text-base font-bold tracking-wide" style={{ color: "#FFD700" }}>
             {shopData?.name || "SKKL Jewellers"}
           </div>
-          <div style={{ fontSize: "11px", color: "#aaa", marginTop: "2px" }}>
+          <div className="text-[11px] text-silver-400 mt-0.5">
             {shopData?.city || "Jewellery ERP"}
           </div>
         </div>
 
-        {/* MENU ITEMS */}
-        <nav style={{ padding: "8px 0" }}>
-          {menuItems.map((item) => (
-            <div
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px 16px",
-                cursor: "pointer",
-                borderRadius: "0 24px 24px 0",
-                marginRight: "12px",
-                marginBottom: "2px",
-                fontSize: "13.5px",
-                fontWeight: isActive(item.path) ? "600" : "400",
-                background: isActive(item.path)
-                  ? "linear-gradient(90deg, rgba(255,215,0,0.2), rgba(255,215,0,0.05))"
-                  : "transparent",
-                color: isActive(item.path) ? "#FFD700" : "#ccc",
-                borderLeft: isActive(item.path) ? "3px solid #FFD700" : "3px solid transparent",
-                transition: "all 0.15s ease"
-              }}
-              onMouseEnter={e => {
-                if (!isActive(item.path)) {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                  e.currentTarget.style.color = "#fff";
+        <nav className="py-2">
+          {MENU.map(({ Icon, label, path }) => {
+            const active = isActive(path);
+            return (
+              <button
+                key={path}
+                onClick={() => navigate(path)}
+                className={[
+                  "w-full text-left flex items-center gap-2.5",
+                  "px-4 py-2.5 mr-3 mb-0.5 rounded-r-3xl text-[13.5px]",
+                  "transition-colors duration-150",
+                  active
+                    ? "font-semibold border-l-[3px]"
+                    : "font-normal border-l-[3px] border-transparent text-silver-300 hover:bg-white/5 hover:text-white",
+                ].join(" ")}
+                style={
+                  active
+                    ? {
+                        background: "linear-gradient(90deg, rgba(255,215,0,0.2), rgba(255,215,0,0.05))",
+                        color: "#FFD700",
+                        borderLeftColor: "#FFD700",
+                      }
+                    : undefined
                 }
-              }}
-              onMouseLeave={e => {
-                if (!isActive(item.path)) {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "#ccc";
-                }
-              }}
-            >
-              <span style={{ fontSize: "16px", minWidth: "20px" }}>{item.icon}</span>
-              <span>{item.label}</span>
-            </div>
-          ))}
+              >
+                <Icon size={16} />
+                <span>{label}</span>
+              </button>
+            );
+          })}
 
-          {/* Super Admin Link */}
           {role === "superadmin" && (
-            <div
+            <button
               onClick={() => navigate("/sa")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px 16px",
-                cursor: "pointer",
-                fontSize: "13.5px",
-                color: "#FFD700",
-                marginTop: "8px",
-                borderTop: "1px solid rgba(255,215,0,0.2)",
-                paddingTop: "16px"
-              }}
+              className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-[13.5px] mt-2 pt-4 border-t border-gold-500/20"
+              style={{ color: "#FFD700" }}
             >
-              <span style={{ fontSize: "16px" }}>👑</span>
+              <Crown size={16} />
               <span>Super Admin</span>
-            </div>
+            </button>
           )}
         </nav>
       </div>
 
-      {/* BOTTOM: User Info + Logout */}
-      <div style={{
-        borderTop: "1px solid rgba(255,255,255,0.1)",
-        padding: "14px 16px"
-      }}>
-        <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "4px" }}>
-          Logged in as
-        </div>
-        <div style={{ fontSize: "13px", fontWeight: "600", color: "#fff", marginBottom: "12px" }}>
-          👤 {userData?.name || "User"}
+      <div className="border-t border-white/10 p-4">
+        <div className="text-[12px] text-silver-400 mb-1">Logged in as</div>
+        <div className="text-[13px] font-semibold mb-3 flex items-center flex-wrap gap-2">
+          <span>👤 {userData?.name || "User"}</span>
           {role && (
-            <span style={{
-              marginLeft: "8px",
-              fontSize: "10px",
-              background: "rgba(255,215,0,0.2)",
-              color: "#FFD700",
-              padding: "2px 6px",
-              borderRadius: "10px"
-            }}>
+            <span className="text-[10px] px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(255,215,0,0.2)", color: "#FFD700" }}>
               {role}
             </span>
           )}
         </div>
         <button
           onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 py-2 text-[13px] font-medium rounded-lg transition-colors"
           style={{
-            width: "100%",
-            padding: "8px",
             background: "rgba(255,70,70,0.15)",
             border: "1px solid rgba(255,70,70,0.3)",
             color: "#ff6b6b",
-            cursor: "pointer",
-            borderRadius: "8px",
-            fontSize: "13px",
-            fontWeight: "500",
-            transition: "all 0.2s"
           }}
-          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,70,70,0.3)"}
-          onMouseLeave={e => e.currentTarget.style.background = "rgba(255,70,70,0.15)"}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,70,70,0.3)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,70,70,0.15)")}
         >
-          🚪 Logout
+          <LogOut size={14} />
+          Logout
         </button>
       </div>
-    </div>
+    </aside>
   );
 }
