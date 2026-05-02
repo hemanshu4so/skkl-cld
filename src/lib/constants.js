@@ -146,3 +146,56 @@ export const LEDGER_DIRECTION = {
   IN:  ["sale", "old_gold", "income", "customer_recv"],
   OUT: ["purchase", "expense", "vendor_pay"],
 };
+
+// ───── Phase 2 additions ─────
+
+export const KARIGAR_TXN_TYPES = [
+  { value: "issue",     label: "Metal Issued",   in: false },  // gold OUT to karigar
+  { value: "receive",   label: "Item Received",  in: true  },  // finished item back from karigar
+  { value: "advance",   label: "Advance Payment", in: false }, // ₹ advance
+  { value: "settlement",label: "Final Settlement", in: false },// ₹ final
+];
+
+export const BULLION_TXN_TYPES = [
+  { value: "melt_in",      label: "Raw Metal In (for melting)" },
+  { value: "fine_out",     label: "Fine Gold Out (after melting)" },
+  { value: "purchase",     label: "Bullion Purchase" },
+  { value: "rate_lock",    label: "Rate Lock Order" },
+  { value: "delivery",     label: "Rate-locked Delivery" },
+  { value: "payment",      label: "Payment to Dealer" },
+];
+
+// Standard chart of accounts (Indian jewellery shop)
+export const DEFAULT_CHART_OF_ACCOUNTS = [
+  // Assets
+  { code: "1000", name: "Cash in Hand",       type: "asset",     group: "Cash & Bank" },
+  { code: "1010", name: "Bank Account",       type: "asset",     group: "Cash & Bank" },
+  { code: "1100", name: "Stock — Gold",       type: "asset",     group: "Inventory" },
+  { code: "1110", name: "Stock — Silver",     type: "asset",     group: "Inventory" },
+  { code: "1120", name: "Stock — Diamond",    type: "asset",     group: "Inventory" },
+  { code: "1200", name: "Customer Receivable",type: "asset",     group: "Receivables" },
+  { code: "1300", name: "Karigar Advance",    type: "asset",     group: "Receivables" },
+  // Liabilities
+  { code: "2000", name: "Vendor Payable",     type: "liability", group: "Payables" },
+  { code: "2010", name: "Customer Advance",   type: "liability", group: "Advances" },
+  { code: "2100", name: "GST Payable",        type: "liability", group: "Tax" },
+  // Income
+  { code: "4000", name: "Sales Revenue",      type: "income",    group: "Revenue" },
+  { code: "4010", name: "Making Charges",     type: "income",    group: "Revenue" },
+  { code: "4020", name: "Repair Income",      type: "income",    group: "Revenue" },
+  { code: "4900", name: "Other Income",       type: "income",    group: "Other" },
+  // Expenses
+  { code: "5000", name: "Cost of Goods Sold", type: "expense",   group: "COGS" },
+  { code: "5100", name: "Karigar Wages",      type: "expense",   group: "Operating" },
+  { code: "5110", name: "Hallmarking",        type: "expense",   group: "Operating" },
+  { code: "5200", name: "Rent",               type: "expense",   group: "Overhead" },
+  { code: "5210", name: "Electricity",        type: "expense",   group: "Overhead" },
+  { code: "5220", name: "Salaries",           type: "expense",   group: "Overhead" },
+  { code: "5230", name: "Marketing",          type: "expense",   group: "Overhead" },
+  { code: "5290", name: "Misc Expense",       type: "expense",   group: "Overhead" },
+];
+
+export const EXPENSE_CATEGORIES = [
+  "Rent", "Electricity", "Salaries", "Marketing", "Hallmarking",
+  "Stationery", "Travel", "Repairs & Maintenance", "Bank Charges", "Misc",
+];
