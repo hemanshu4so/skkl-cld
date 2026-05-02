@@ -16,6 +16,9 @@ import Purchases from "./pages/purchases";
 import Reports from "./pages/reports";
 import RateManager from "./pages/RateManager";
 import ShopSettings from "./pages/ShopSettings";
+import Karigar from "./pages/Karigar";
+import Bullion from "./pages/Bullion";
+import Accounting from "./pages/Accounting";
 
 // 🔹 Auth + recovery
 import Login from "./pages/Login";
@@ -130,8 +133,11 @@ function App() {
               <Route path="repairs" element={safe(<Repairs />)} />
               <Route path="purchases" element={safe(<Purchases />)} />
               <Route path="reports" element={safe(<Reports />)} />
-              <Route path="rates" element={safe(<RateManager />)} />
-              <Route path="settings" element={safe(<ShopSettings />)} />
+              <Route path="karigar"    element={safe(<Karigar />)} />
+              <Route path="bullion"    element={safe(<Bullion />)} />
+              <Route path="accounting" element={safe(<Accounting />)} />
+              <Route path="rates"      element={safe(<RateManager />)} />
+              <Route path="settings"   element={safe(<ShopSettings />)} />
             </Route>
 
             {/* 404 */}
