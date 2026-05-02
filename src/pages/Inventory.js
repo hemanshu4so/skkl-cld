@@ -14,7 +14,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { db } from "../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
-  doc, query, where, updateDoc, serverTimestamp, orderBy,
+  doc, query, where, updateDoc, serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
@@ -70,6 +70,21 @@ function BarcodeStripes({ value }) {
   );
 }
 
+
+// Sort array of {createdAt, ...} server-side or client-side. Pending writes
+// (where createdAt is still null waiting for serverTimestamp roundtrip) and
+// legacy docs missing the field both fall back to a sane order so the row
+// shows immediately rather than disappearing.
+const _ts = (d) => {
+  const v = d?.createdAt;
+  if (!v) return 0;
+  if (typeof v.toMillis === "function") return v.toMillis();
+  if (v.seconds != null) return v.seconds * 1000;
+  if (v instanceof Date) return v.getTime();
+  return Number(v) || 0;
+};
+const sortByCreatedDesc = (arr) => [...(arr || [])].sort((a, b) => _ts(b) - _ts(a));
+
 export default function Inventory() {
   const { userData } = useAuth();
   const { toast } = useToast();
@@ -103,15 +118,14 @@ export default function Inventory() {
     if (!shopId) return undefined;
     const q = query(
       collection(db, "products"),
-      where("shopId", "==", shopId),
-      orderBy("createdAt", "desc")
+      where("shopId", "==", shopId)
     );
     const unsub = onSnapshot(q,
       (snap) => {
         setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setLoadingList(false);
       },
-      (err) => { console.error("[inventory] snapshot error:", err); setLoadingList(false); }
+      (err) => { console.error("[inventory] snapshot error:", err); setLoadingList(false); toast("Could not load products — check Firestore rules / connection.", "error"); }
     );
     productsUnsubRef.current = unsub;
     return () => {
@@ -120,6 +134,7 @@ export default function Inventory() {
         productsUnsubRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shopId]);
 
   const handleAddStone = () => {
@@ -314,7 +329,7 @@ export default function Inventory() {
   };
 
   // ── Filtering ─────────────────────────────────────────────────────────
-  const filtered = useMemo(() => products.filter((p) => {
+  const filtered = useMemo(() => sortByCreatedDesc(products).filter((p) => {
     const matchCat = filterCat === "All" || p.category === filterCat;
     const ms = !search ||
       p.name?.toLowerCase().includes(search.toLowerCase()) ||

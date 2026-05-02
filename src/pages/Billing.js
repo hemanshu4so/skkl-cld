@@ -12,7 +12,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { db } from "../firebase";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
-  doc, serverTimestamp, runTransaction, orderBy} from "firebase/firestore";
+  doc, serverTimestamp, runTransaction} from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { assertShopId } from "../lib/utils";
@@ -178,6 +178,21 @@ function PrintBill({ bill, shopData, onClose }) {
 }
 
 // ───── Main POS ─────
+
+// Sort array of {createdAt, ...} server-side or client-side. Pending writes
+// (where createdAt is still null waiting for serverTimestamp roundtrip) and
+// legacy docs missing the field both fall back to a sane order so the row
+// shows immediately rather than disappearing.
+const _ts = (d) => {
+  const v = d?.createdAt;
+  if (!v) return 0;
+  if (typeof v.toMillis === "function") return v.toMillis();
+  if (v.seconds != null) return v.seconds * 1000;
+  if (v instanceof Date) return v.getTime();
+  return Number(v) || 0;
+};
+const sortByCreatedDesc = (arr) => [...(arr || [])].sort((a, b) => _ts(b) - _ts(a));
+
 export default function Billing() {
   const { userData, shopData } = useAuth();
   const { toast } = useToast();
@@ -234,7 +249,7 @@ export default function Billing() {
     if (customersUnsubRef.current) { customersUnsubRef.current(); customersUnsubRef.current = null; }
     if (!shopId) return undefined;
     const u = onSnapshot(
-      query(collection(db, "customers"), where("shopId", "==", shopId), orderBy("createdAt", "desc")),
+      query(collection(db, "customers"), where("shopId", "==", shopId)),
       (snap) => setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
       (err) => console.error("[billing.customers] snapshot error:", err)
     );
@@ -247,7 +262,7 @@ export default function Billing() {
     if (productsUnsubRef.current) { productsUnsubRef.current(); productsUnsubRef.current = null; }
     if (!shopId) return undefined;
     const u = onSnapshot(
-      query(collection(db, "products"), where("shopId", "==", shopId), orderBy("createdAt", "desc")),
+      query(collection(db, "products"), where("shopId", "==", shopId)),
       (snap) => setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
       (err) => console.error("[billing.products] snapshot error:", err)
     );
@@ -260,7 +275,7 @@ export default function Billing() {
     if (heldBillsUnsubRef.current) { heldBillsUnsubRef.current(); heldBillsUnsubRef.current = null; }
     if (!shopId) return undefined;
     const u = onSnapshot(
-      query(collection(db, "heldBills"), where("shopId", "==", shopId), orderBy("createdAt", "desc")),
+      query(collection(db, "heldBills"), where("shopId", "==", shopId)),
       (snap) => setHeldBills(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
       (err) => console.error("[billing.heldBills] snapshot error:", err)
     );
@@ -366,11 +381,11 @@ export default function Billing() {
   const balance = Math.max(0, grandTotal - effectivePaid);
 
   // Filtering
-  const filteredCustomers = customers.filter((c) =>
+  const filteredCustomers = sortByCreatedDesc(customers).filter((c) =>
     c.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
     c.phone?.includes(customerSearch)
   ).slice(0, 8);
-  const filteredProducts = products.filter((p) =>
+  const filteredProducts = sortByCreatedDesc(products).filter((p) =>
     productSearch && (
       p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
       p.barcode?.toLowerCase().includes(productSearch.toLowerCase()) ||
@@ -519,7 +534,7 @@ export default function Billing() {
             <select onChange={(e) => { const h = heldBills.find((x) => x.id === e.target.value); if (h) recallBill(h); }} value=""
               style={{ padding: "6px 10px", borderRadius: 6, border: "1.5px solid #FDD835", background: "#fff", fontSize: 12 }}>
               <option value="">↺ Recall held ({heldBills.length})</option>
-              {heldBills.map((h) => (
+              {sortByCreatedDesc(heldBills).map((h) => (
                 <option key={h.id} value={h.id}>{h.customerName} · {(h.cart || []).length} items</option>
               ))}
             </select>

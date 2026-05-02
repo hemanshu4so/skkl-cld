@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
-  doc, query, where, updateDoc, serverTimestamp, orderBy
+  doc, query, where, updateDoc, serverTimestamp
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
@@ -12,6 +12,21 @@ const emptyForm = {
   name: "", phone: "", email: "", address: "",
   city: "", anniversary: "", birthday: "", notes: ""
 };
+
+
+// Sort array of {createdAt, ...} server-side or client-side. Pending writes
+// (where createdAt is still null waiting for serverTimestamp roundtrip) and
+// legacy docs missing the field both fall back to a sane order so the row
+// shows immediately rather than disappearing.
+const _ts = (d) => {
+  const v = d?.createdAt;
+  if (!v) return 0;
+  if (typeof v.toMillis === "function") return v.toMillis();
+  if (v.seconds != null) return v.seconds * 1000;
+  if (v instanceof Date) return v.getTime();
+  return Number(v) || 0;
+};
+const sortByCreatedDesc = (arr) => [...(arr || [])].sort((a, b) => _ts(b) - _ts(a));
 
 export default function Customers() {
   const { userData } = useAuth();
@@ -38,15 +53,14 @@ export default function Customers() {
     if (!shopId) return undefined;
     const q = query(
       collection(db, "customers"),
-      where("shopId", "==", shopId),
-      orderBy("createdAt", "desc")
+      where("shopId", "==", shopId)
     );
     const unsub = onSnapshot(q,
       (snap) => {
         setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setLoadingList(false);
       },
-      (err) => { console.error("[customers] snapshot error:", err); setLoadingList(false); }
+      (err) => { console.error("[customers] snapshot error:", err); setLoadingList(false); toast("Could not load customers — check Firestore rules / connection.", "error"); }
     );
     customersUnsubRef.current = unsub;
     return () => {
@@ -55,6 +69,7 @@ export default function Customers() {
         customersUnsubRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shopId]);
 
   // Purchase history for the selected customer — separate subscription,
@@ -75,8 +90,7 @@ export default function Customers() {
     const q = query(
       collection(db, "sales"),
       where("shopId", "==", shopId),
-      where("customerId", "==", selectedId),
-      orderBy("createdAt", "desc")
+      where("customerId", "==", selectedId)
     );
     const unsub = onSnapshot(q,
       (snap) => setPurchases(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
@@ -141,7 +155,7 @@ export default function Customers() {
     if (selected?.id === id) setSelected(null);
   };
 
-  const filtered = customers.filter(c =>
+  const filtered = sortByCreatedDesc(customers).filter(c =>
     !search ||
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.phone?.includes(search) ||
@@ -365,7 +379,7 @@ export default function Customers() {
                 No purchases yet
               </div>
             ) : (
-              purchases.map(p => (
+              sortByCreatedDesc(purchases).map(p => (
                 <div key={p.id} style={{
                   padding: "10px 12px", border: "1px solid #f0f0f0",
                   borderRadius: "8px", marginBottom: "8px"

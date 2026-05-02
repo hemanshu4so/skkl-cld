@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import {
-  collection, query, where, onSnapshot,
-  doc, orderBy, limit, Timestamp
+  collection, query, where, onSnapshot, doc,
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { Card, Button } from "../components/ui";
@@ -88,74 +87,111 @@ export default function Dashboard() {
   // ── Load Gold/Silver Rates ──────────────────────────────────────────────
   useEffect(() => {
     if (!shopId) return;
-    const unsub = onSnapshot(doc(db, "rates", shopId), (snap) => {
-      if (snap.exists()) {
-        setRates(snap.data());
-      }
-    });
+    const unsub = onSnapshot(doc(db, "rates", shopId),
+      (snap) => { if (snap.exists()) setRates(snap.data()); },
+      (err) => console.error("[dashboard.rates] snapshot error:", err)
+    );
     return () => unsub();
   }, [shopId]);
 
-  // ── Load Stats ──────────────────────────────────────────────────────────
+  // ── Load Stats (no orderBy, no compound index needed) ───────────────
   useEffect(() => {
     if (!shopId) return;
 
+    let firstSnapshotFired = false;
+    const flipReady = () => {
+      if (!firstSnapshotFired) {
+        firstSnapshotFired = true;
+        setLoading(false);
+      }
+    };
+
+    // Watchdog: never let "Loading dashboard…" be permanent. After 6s,
+    // we let the page render whatever data we have, with whatever value is
+    // currently in `stats`. If a listener errors silently, this saves us.
+    const watchdog = setTimeout(flipReady, 6000);
+
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+    const todayStartMs = todayStart.getTime();
 
-    // Today's sales
-    const salesQ = query(
-      collection(db, "sales"),
-      where("shopId", "==", shopId),
-      where("createdAt", ">=", Timestamp.fromDate(todayStart))
+    // Sales — fetch all for the shop, filter today client-side.
+    // (No `where(createdAt >= …)` so we don't need a composite index.)
+    const salesQ = query(collection(db, "sales"), where("shopId", "==", shopId));
+    const unsubSales = onSnapshot(salesQ,
+      (snap) => {
+        let count = 0; let revenue = 0;
+        snap.docs.forEach((d) => {
+          const x = d.data();
+          const ms = x.createdAt?.toMillis?.() ?? (x.createdAt?.seconds ? x.createdAt.seconds * 1000 : 0);
+          if (ms >= todayStartMs) { count++; revenue += Number(x.total) || 0; }
+        });
+        setStats((s) => ({ ...s, todaySales: count, todayRevenue: revenue }));
+        flipReady();
+      },
+      (err) => { console.error("[dashboard.sales] snapshot error:", err); flipReady(); }
     );
-    const unsubSales = onSnapshot(salesQ, (snap) => {
-      let revenue = 0;
-      snap.docs.forEach(d => { revenue += (d.data().total || 0); });
-      setStats(s => ({ ...s, todaySales: snap.size, todayRevenue: revenue }));
-      setLoading(false);
-    });
 
-    // Customers
     const custQ = query(collection(db, "customers"), where("shopId", "==", shopId));
-    const unsubCust = onSnapshot(custQ, (snap) => {
-      setStats(s => ({ ...s, totalCustomers: snap.size }));
-    });
+    const unsubCust = onSnapshot(custQ,
+      (snap) => { setStats((s) => ({ ...s, totalCustomers: snap.size })); flipReady(); },
+      (err) => { console.error("[dashboard.customers] snapshot error:", err); flipReady(); }
+    );
 
-    // Pending Repairs
+    // Pending repairs — `status in […]` needs no composite index but rule check.
     const repairQ = query(
       collection(db, "repairs"),
       where("shopId", "==", shopId),
       where("status", "in", ["received", "estimated", "approved", "in_progress", "ready"])
     );
-    const unsubRepair = onSnapshot(repairQ, (snap) => {
-      setStats(s => ({ ...s, pendingRepairs: snap.size }));
-    });
+    const unsubRepair = onSnapshot(repairQ,
+      (snap) => { setStats((s) => ({ ...s, pendingRepairs: snap.size })); flipReady(); },
+      (err) => { console.error("[dashboard.repairs] snapshot error:", err); flipReady(); }
+    );
 
-    // Active Schemes
     const schemeQ = query(collection(db, "schemes"), where("shopId", "==", shopId));
-    const unsubScheme = onSnapshot(schemeQ, (snap) => {
-      setStats(s => ({ ...s, activeSchemes: snap.size }));
-    });
+    const unsubScheme = onSnapshot(schemeQ,
+      (snap) => { setStats((s) => ({ ...s, activeSchemes: snap.size })); flipReady(); },
+      (err) => { console.error("[dashboard.schemes] snapshot error:", err); flipReady(); }
+    );
 
-    // loading flips inside the first sales snapshot above
+    // Inventory low-stock count
+    const prodQ = query(collection(db, "products"), where("shopId", "==", shopId));
+    const unsubProd = onSnapshot(prodQ,
+      (snap) => {
+        let low = 0;
+        snap.docs.forEach((d) => {
+          const x = d.data();
+          if ((Number(x.qty) || 0) <= (Number(x.lowStockThreshold) || 2)) low++;
+        });
+        setStats((s) => ({ ...s, lowStock: low }));
+        flipReady();
+      },
+      (err) => { console.error("[dashboard.products] snapshot error:", err); flipReady(); }
+    );
+
     return () => {
-      unsubSales(); unsubCust(); unsubRepair(); unsubScheme();
+      clearTimeout(watchdog);
+      unsubSales(); unsubCust(); unsubRepair(); unsubScheme(); unsubProd();
     };
   }, [shopId]);
 
   // ── Recent Sales ────────────────────────────────────────────────────────
+  // No orderBy/limit on the server — we sort + slice in JS so pending writes
+  // and legacy docs without createdAt still appear, and we don't need a
+  // composite index. The shop's daily volume keeps this affordable.
   useEffect(() => {
     if (!shopId) return;
-    const q = query(
-      collection(db, "sales"),
-      where("shopId", "==", shopId),
-      orderBy("createdAt", "desc"),
-      limit(5)
+    const q = query(collection(db, "sales"), where("shopId", "==", shopId));
+    const unsub = onSnapshot(q,
+      (snap) => {
+        const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const ms = (x) => x.createdAt?.toMillis?.() ?? (x.createdAt?.seconds ? x.createdAt.seconds * 1000 : 0);
+        all.sort((a, b) => ms(b) - ms(a));
+        setRecentSales(all.slice(0, 5));
+      },
+      (err) => console.error("[dashboard.recentSales] snapshot error:", err)
     );
-    const unsub = onSnapshot(q, (snap) => {
-      setRecentSales(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
     return () => unsub();
   }, [shopId]);
 
