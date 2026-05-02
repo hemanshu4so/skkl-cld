@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { assertShopId } from "../lib/utils";
 import { REPAIR_STATUS, REPAIR_STATUS_FLOW } from "../lib/constants";
 import { logActivity } from "../lib/activityLog";
 import { uploadShopFile } from "../lib/upload";
@@ -108,6 +109,7 @@ export default function Repairs() {
   };
 
   const handleSave = async () => {
+    if (!assertShopId(shopId, toast, "Repairs.handleSave")) return;
     if (!form.customerId && !form.customerName) { toast("Select a customer", "warn"); return; }
     if (!form.itemDescription) { toast("Item description required", "warn"); return; }
     setSaving(true);
@@ -167,6 +169,7 @@ export default function Repairs() {
   };
 
   const handleDelete = async (r) => {
+    if (!assertShopId(shopId, toast, "Repairs.handleDelete")) return;
     if (!window.confirm(`Delete job ${r.jobNo}?`)) return;
     await deleteDoc(doc(db, "repairs", r.id));
     await logActivity({ shopId, action: "delete", entity: "repair", entityId: r.id, uid: userData?.id, name: userData?.name, before: r });
@@ -174,6 +177,7 @@ export default function Repairs() {
   };
 
   const moveStatus = async (r, nextStatus) => {
+    if (!assertShopId(shopId, toast, "Repairs.moveStatus")) return;
     if (!REPAIR_STATUS_FLOW[r.status]?.includes(nextStatus)) {
       toast(`Cannot move from ${r.status} to ${nextStatus}`, "warn");
       return;

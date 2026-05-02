@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { CATEGORIES, KARATS, ITEM_TYPES, VENDOR_TYPES, formatINR, formatDate } from "../lib/constants";
 import { logActivity } from "../lib/activityLog";
+import { assertShopId } from "../lib/utils";
 
 const emptyVendor = {
   name: "", type: "manufacturer", phone: "", email: "",
@@ -89,6 +90,7 @@ function VendorsTab({ shopId, userData, toast, vendors }) {
   const [search, setSearch] = useState("");
 
   const save = async () => {
+    if (!assertShopId(shopId, toast, "Purchases.Vendors.save")) return;
     if (!form.name) { toast("Vendor name required", "warn"); return; }
     try {
       const data = {
@@ -125,6 +127,7 @@ function VendorsTab({ shopId, userData, toast, vendors }) {
   };
 
   const handleDelete = async (v) => {
+    if (!assertShopId(shopId, toast, "Purchases.Vendors.handleDelete")) return;
     if (!window.confirm(`Delete vendor ${v.name}?`)) return;
     await deleteDoc(doc(db, "vendors", v.id));
     await logActivity({ shopId, action: "delete", entity: "vendor", entityId: v.id, uid: userData?.id, name: userData?.name });
@@ -232,6 +235,7 @@ function GRNTab({ shopId, userData, toast, vendors }) {
   );
 
   const handleSave = async () => {
+    if (!assertShopId(shopId, toast, "Purchases.GRN.handleSave")) return;
     if (!vendorId) { toast("Pick a vendor", "warn"); return; }
     if (lines.length === 0 || lines.every((l) => !l.name)) { toast("Add at least one item", "warn"); return; }
     setSaving(true);
@@ -492,6 +496,7 @@ function LedgerTab({ vendors, purchases, payments, shopId, userData, toast }) {
   const balance = opening + totalPurchases - totalPaid;
 
   const recordPayment = async () => {
+    if (!assertShopId(shopId, toast, "Purchases.Ledger.recordPayment")) return;
     if (!vendorId) { toast("Pick a vendor", "warn"); return; }
     if (!payAmount || Number(payAmount) <= 0) { toast("Enter amount", "warn"); return; }
     try {

@@ -6,6 +6,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { assertShopId } from "../lib/utils";
 
 const emptyForm = {
   name: "", phone: "", email: "", address: "",
@@ -55,6 +56,7 @@ export default function Customers() {
   }, [selected, shopId]);
 
   const handleSave = async () => {
+    if (!assertShopId(shopId, toast, "Customers.handleSave")) return;
     if (!form.name || !form.phone) { toast("Name and phone required", "warn"); return; }
     setSaving(true);
     try {
@@ -98,6 +100,7 @@ export default function Customers() {
   };
 
   const handleDelete = async (id) => {
+    if (!assertShopId(shopId, toast, "Customers.handleDelete")) return;
     if (!window.confirm("Delete this customer?")) return;
     await deleteDoc(doc(db, "customers", id));
     if (selected?.id === id) setSelected(null);

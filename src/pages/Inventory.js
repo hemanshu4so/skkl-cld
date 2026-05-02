@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { assertShopId } from "../lib/utils";
 import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../lib/constants";
 import { logActivity } from "../lib/activityLog";
 import { uploadShopFile } from "../lib/upload";
@@ -134,6 +135,7 @@ export default function Inventory() {
     setForm((f) => ({ ...f, photos: (f.photos || []).filter((_, idx) => idx !== i) }));
 
   const handleSave = async () => {
+    if (!assertShopId(shopId, toast, "Inventory.handleSave")) return;
     if (!form.name || !form.weight) {
       toast("Product name and weight are required", "warn");
       return;
@@ -227,6 +229,7 @@ export default function Inventory() {
   };
 
   const handleDelete = async (p) => {
+    if (!assertShopId(shopId, toast, "Inventory.handleDelete")) return;
     if (!window.confirm(`Delete "${p.name}"?`)) return;
     try {
       await deleteDoc(doc(db, "products", p.id));
@@ -242,6 +245,7 @@ export default function Inventory() {
 
   // ── Bulk CSV import ───────────────────────────────────────────────────
   const handleCsvImport = async () => {
+    if (!assertShopId(shopId, toast, "Inventory.handleCsvImport")) return;
     if (!csvText.trim()) { toast("Paste CSV content first", "warn"); return; }
     setCsvBusy(true);
     try {

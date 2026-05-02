@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
 import { EXCHANGE_TYPES, SPLIT_MODES } from "../lib/constants";
 
@@ -352,6 +353,7 @@ export default function Billing() {
 
   // Hold / Recall
   const holdBill = async () => {
+    if (!assertShopId(shopId, toast, "Billing.holdBill")) return;
     if (cartItems.length === 0) { toast("Cart is empty", "warn"); return; }
     try {
       await addDoc(collection(db, "heldBills"), {
@@ -393,6 +395,7 @@ export default function Billing() {
 
   // Save bill
   const handleSave = async () => {
+    if (!assertShopId(shopId, toast, "Billing.handleSave")) return;
     if (cartItems.length === 0) { toast("Add at least one item", "warn"); return; }
     if (!selectedCustomer && !walkIn) { toast("Select a customer or mark as walk-in", "warn"); return; }
     setSaving(true);

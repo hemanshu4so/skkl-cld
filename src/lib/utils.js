@@ -163,3 +163,29 @@ export const downloadCSV = (rows, filename = "export.csv") => {
   a.click();
   URL.revokeObjectURL(url);
 };
+
+// 🛡️ Required-field guard: every Firestore write that should be shop-scoped
+// must call this BEFORE addDoc/setDoc/updateDoc. Returns true if shopId is a
+// non-empty string; otherwise console.errors and toasts (if provided) and
+// returns false so the caller can early-return without writing undefined.
+//
+// Usage:
+//   if (!assertShopId(shopId, toast, "Inventory.handleSave")) return;
+//
+// Why we need this:
+//   AuthContext loads the user profile asynchronously. If a save handler
+//   fires before userData is hydrated, shopId is undefined, and Firestore
+//   throws "Unsupported field value: undefined (found in field shopId)".
+//   That error blocks the whole write and confuses users.
+export const assertShopId = (shopId, toast, where = "save") => {
+  if (typeof shopId === "string" && shopId.length > 0) return true;
+  // eslint-disable-next-line no-console
+  console.error(
+    `[${where}] aborting write — shopId is ${JSON.stringify(shopId)}. ` +
+    "User profile may not be loaded yet, or this account has no shopId attached."
+  );
+  if (typeof toast === "function") {
+    toast("Cannot save: your shop is not loaded yet. Please refresh and try again.", "error");
+  }
+  return false;
+};
