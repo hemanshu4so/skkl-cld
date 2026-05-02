@@ -109,3 +109,40 @@ export const formatDateTime = (d) => {
     hour: "2-digit", minute: "2-digit", hour12: true,
   });
 };
+
+// ───── Phase 1 additions ─────────────────────────────────────────────
+
+export const VENDOR_TYPES = [
+  { value: "manufacturer", label: "Manufacturer" },
+  { value: "wholesaler",   label: "Wholesaler" },
+  { value: "bullion",      label: "Bullion Dealer" },
+  { value: "stones",       label: "Stones / Diamond" },
+  { value: "other",        label: "Other" },
+];
+
+export const EXCHANGE_TYPES = [
+  { value: "old_gold",   label: "Old Gold",    purity: 0.916 },
+  { value: "old_silver", label: "Old Silver",  purity: 0.925 },
+  { value: "scrap_24k",  label: "Scrap 24K",   purity: 0.999 },
+  { value: "scrap_18k",  label: "Scrap 18K",   purity: 0.750 },
+];
+
+// Allowed forward transitions for repair status.
+// Used by Repairs UI to limit the dropdown to legal next steps.
+export const REPAIR_STATUS_FLOW = {
+  received:    ["estimated", "cancelled"],
+  estimated:   ["approved", "cancelled"],
+  approved:    ["in_progress", "cancelled"],
+  in_progress: ["ready", "cancelled"],
+  ready:       ["delivered"],
+  delivered:   [],
+  cancelled:   [],
+};
+
+export const SPLIT_MODES = ["cash", "card", "upi", "bank", "cheque", "credit"];
+
+// Paid-in/out flags for ledger queries
+export const LEDGER_DIRECTION = {
+  IN:  ["sale", "old_gold", "income", "customer_recv"],
+  OUT: ["purchase", "expense", "vendor_pay"],
+};
