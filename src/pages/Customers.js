@@ -26,6 +26,7 @@ export default function Customers() {
   const [purchases, setPurchases] = useState([]);
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadingList, setLoadingList] = useState(true);
   // Load customers
   useEffect(() => {
     if (!shopId) return;
@@ -36,7 +37,8 @@ export default function Customers() {
     );
     const unsub = onSnapshot(q, (snap) => {
       setCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+      setLoadingList(false);
+    }, (err) => { console.error('[customers] snapshot:', err); setLoadingList(false); });
     return () => unsub();
   }, [shopId]);
 
@@ -219,7 +221,9 @@ export default function Customers() {
       <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 380px" : "1fr", gap: "20px" }}>
         {/* Customer List */}
         <div style={{ background: "#fff", borderRadius: "14px", border: "1px solid #eee", overflow: "hidden" }}>
-          {filtered.length === 0 ? (
+          {loadingList ? (
+            <div style={{ padding: "50px", textAlign: "center", color: "#bbb" }}>Loading customers…</div>
+          ) : filtered.length === 0 ? (
             <div style={{ padding: "50px", textAlign: "center", color: "#bbb" }}>No customers yet. Add your first customer above.</div>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>

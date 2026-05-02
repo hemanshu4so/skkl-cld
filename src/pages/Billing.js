@@ -12,8 +12,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { db } from "../firebase";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
-  doc, serverTimestamp, runTransaction,
-} from "firebase/firestore";
+  doc, serverTimestamp, runTransaction, orderBy} from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { assertShopId } from "../lib/utils";
@@ -219,7 +218,7 @@ export default function Billing() {
 
   useEffect(() => {
     if (!shopId) return;
-    const u = onSnapshot(query(collection(db, "customers"), where("shopId", "==", shopId)), (s) => {
+    const u = onSnapshot(query(collection(db, "customers"), where("shopId", "==", shopId), orderBy("createdAt", "desc")), (s) => {
       setCustomers(s.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => u();
@@ -227,7 +226,7 @@ export default function Billing() {
 
   useEffect(() => {
     if (!shopId) return;
-    const u = onSnapshot(query(collection(db, "products"), where("shopId", "==", shopId)), (s) => {
+    const u = onSnapshot(query(collection(db, "products"), where("shopId", "==", shopId), orderBy("createdAt", "desc")), (s) => {
       setProducts(s.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => u();
@@ -235,7 +234,7 @@ export default function Billing() {
 
   useEffect(() => {
     if (!shopId) return;
-    const u = onSnapshot(query(collection(db, "heldBills"), where("shopId", "==", shopId)), (s) => {
+    const u = onSnapshot(query(collection(db, "heldBills"), where("shopId", "==", shopId), orderBy("createdAt", "desc")), (s) => {
       setHeldBills(s.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => u();

@@ -17,9 +17,10 @@ import Reports from "./pages/reports";
 import RateManager from "./pages/RateManager";
 import ShopSettings from "./pages/ShopSettings";
 
-// 🔹 Auth
+// 🔹 Auth + recovery
 import Login from "./pages/Login";
 import Renew from "./pages/Renew";
+import AccountUnlinked from "./pages/AccountUnlinked";
 
 // 🔹 Super Admin
 import SuperAdminLayout from "./superadmin/SuperAdminLayout";
@@ -31,24 +32,57 @@ import EditShop from "./superadmin/EditShop";
 import Plans from "./superadmin/Plans";
 import Payments from "./superadmin/Payments";
 
-// 🔐 Route Guards
-function ProtectedRoute({ children, requireRole }) {
-  const { authUser, role, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-silver-500">Loading…</div>
+// ─── Centralized loading splash ───────────────────────────────────────
+function FullPageLoader({ label = "Loading your shop…" }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-silver-50">
+      <div className="flex items-center gap-3 text-silver-600">
+        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+          <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+        </svg>
+        <span className="text-sm">{label}</span>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
+// ─── Route Guard ──────────────────────────────────────────────────────
+//
+// Order of decisions:
+//   1. If still loading → splash (don't render children that may read shopId)
+//   2. If signed-out → /login
+//   3. If signed-in WITH a hard error (NO_USER_DOC / NO_SHOP_ID / NO_SHOP_DOC)
+//      → AccountUnlinked screen (NEVER render shop pages)
+//   4. If shop is BLOCKED → /renew
+//   5. If superadmin route but role !== superadmin → /
+//   6. If shop route but no shopId (and not superadmin) → AccountUnlinked
+//   7. Otherwise → render children with shopId guaranteed defined
+//
+function ProtectedRoute({ children, requireRole }) {
+  const { authUser, role, loading, error, shopId } = useAuth();
+
+  if (loading) return <FullPageLoader />;
+
   if (!authUser) return <Navigate to="/login" replace />;
-  if (requireRole === "superadmin" && role !== "superadmin")
-    return <Navigate to="/" replace />;
+
+  if (error === "SHOP_BLOCKED") return <Navigate to="/renew" replace />;
+  if (error)                    return <AccountUnlinked code={error} />;
+
+  if (requireRole === "superadmin") {
+    if (role !== "superadmin") return <Navigate to="/" replace />;
+    return children;
+  }
+
+  // Shop pages: shopId MUST be a non-empty string here. If it isn't, we
+  // route to AccountUnlinked rather than letting pages crash.
+  if (role !== "superadmin" && (!shopId || typeof shopId !== "string")) {
+    return <AccountUnlinked code="NO_SHOP_ID" />;
+  }
+
   return children;
 }
 
-// Small helper: wrap each leaf page in its own ErrorBoundary so a render
-// failure in one screen doesn't blank the whole app.
 const safe = (el) => <ErrorBoundary>{el}</ErrorBoundary>;
 
 function App() {

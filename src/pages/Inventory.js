@@ -14,7 +14,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { db } from "../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
-  doc, query, where, updateDoc, serverTimestamp,
+  doc, query, where, updateDoc, serverTimestamp, orderBy,
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
@@ -83,6 +83,7 @@ export default function Inventory() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loadingList, setLoadingList] = useState(true);
 
   // Bulk operations
   const [csvOpen, setCsvOpen] = useState(false);
@@ -94,10 +95,11 @@ export default function Inventory() {
   // Load products live
   useEffect(() => {
     if (!shopId) return;
-    const q = query(collection(db, "products"), where("shopId", "==", shopId));
+    const q = query(collection(db, "products"), where("shopId", "==", shopId), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+      setLoadingList(false);
+    }, (err) => { console.error('[inventory] snapshot:', err); setLoadingList(false); });
     return () => unsub();
   }, [shopId]);
 
@@ -515,7 +517,9 @@ export default function Inventory() {
 
       {/* Products table */}
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #eee", overflow: "hidden" }}>
-        {filtered.length === 0 ? (
+        {loadingList ? (
+          <div style={{ padding: 50, textAlign: "center", color: "#bbb" }}>Loading products…</div>
+        ) : filtered.length === 0 ? (
           <div style={{ padding: 50, textAlign: "center", color: "#bbb" }}>
             No products found. Add one above or import via CSV.
           </div>
