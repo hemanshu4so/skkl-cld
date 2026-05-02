@@ -205,39 +205,67 @@ export default function Billing() {
   const [saving, setSaving] = useState(false);
   const [printBill, setPrintBill] = useState(null);
 
+  // Snapshot subscription refs — guarantee one listener per query, defensive
+  // double-unsub guards on every effect re-run / strict-mode double-mount.
+  const ratesUnsubRef     = useRef(null);
+  const customersUnsubRef = useRef(null);
+  const productsUnsubRef  = useRef(null);
+  const heldBillsUnsubRef = useRef(null);
+
   const customerInputRef = useRef(null);
   const productInputRef = useRef(null);
   const saveBtnRef = useRef(null);
 
   // Live data
+  // Rates — single live listener
   useEffect(() => {
-    if (!shopId) return;
-    const u = onSnapshot(doc(db, "rates", shopId), (s) => { if (s.exists()) setRates(s.data()); });
-    return () => u();
+    if (ratesUnsubRef.current) { ratesUnsubRef.current(); ratesUnsubRef.current = null; }
+    if (!shopId) return undefined;
+    const u = onSnapshot(doc(db, "rates", shopId),
+      (snap) => { if (snap.exists()) setRates(snap.data()); },
+      (err) => console.error("[rates] snapshot error:", err)
+    );
+    ratesUnsubRef.current = u;
+    return () => { if (ratesUnsubRef.current) { ratesUnsubRef.current(); ratesUnsubRef.current = null; } };
   }, [shopId]);
 
+  // Customers — single live listener
   useEffect(() => {
-    if (!shopId) return;
-    const u = onSnapshot(query(collection(db, "customers"), where("shopId", "==", shopId), orderBy("createdAt", "desc")), (s) => {
-      setCustomers(s.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    return () => u();
+    if (customersUnsubRef.current) { customersUnsubRef.current(); customersUnsubRef.current = null; }
+    if (!shopId) return undefined;
+    const u = onSnapshot(
+      query(collection(db, "customers"), where("shopId", "==", shopId), orderBy("createdAt", "desc")),
+      (snap) => setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.error("[billing.customers] snapshot error:", err)
+    );
+    customersUnsubRef.current = u;
+    return () => { if (customersUnsubRef.current) { customersUnsubRef.current(); customersUnsubRef.current = null; } };
   }, [shopId]);
 
+  // Products — single live listener
   useEffect(() => {
-    if (!shopId) return;
-    const u = onSnapshot(query(collection(db, "products"), where("shopId", "==", shopId), orderBy("createdAt", "desc")), (s) => {
-      setProducts(s.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    return () => u();
+    if (productsUnsubRef.current) { productsUnsubRef.current(); productsUnsubRef.current = null; }
+    if (!shopId) return undefined;
+    const u = onSnapshot(
+      query(collection(db, "products"), where("shopId", "==", shopId), orderBy("createdAt", "desc")),
+      (snap) => setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.error("[billing.products] snapshot error:", err)
+    );
+    productsUnsubRef.current = u;
+    return () => { if (productsUnsubRef.current) { productsUnsubRef.current(); productsUnsubRef.current = null; } };
   }, [shopId]);
 
+  // Held bills — single live listener
   useEffect(() => {
-    if (!shopId) return;
-    const u = onSnapshot(query(collection(db, "heldBills"), where("shopId", "==", shopId), orderBy("createdAt", "desc")), (s) => {
-      setHeldBills(s.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    return () => u();
+    if (heldBillsUnsubRef.current) { heldBillsUnsubRef.current(); heldBillsUnsubRef.current = null; }
+    if (!shopId) return undefined;
+    const u = onSnapshot(
+      query(collection(db, "heldBills"), where("shopId", "==", shopId), orderBy("createdAt", "desc")),
+      (snap) => setHeldBills(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.error("[billing.heldBills] snapshot error:", err)
+    );
+    heldBillsUnsubRef.current = u;
+    return () => { if (heldBillsUnsubRef.current) { heldBillsUnsubRef.current(); heldBillsUnsubRef.current = null; } };
   }, [shopId]);
 
   // Keyboard shortcuts

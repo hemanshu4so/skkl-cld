@@ -92,15 +92,34 @@ export default function Inventory() {
   const [printSet, setPrintSet] = useState(new Set());
   const [printOpen, setPrintOpen] = useState(false);
 
-  // Load products live
+  // Live products list — single subscription per shopId
+  const productsUnsubRef = useRef(null);
   useEffect(() => {
-    if (!shopId) return;
-    const q = query(collection(db, "products"), where("shopId", "==", shopId), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLoadingList(false);
-    }, (err) => { console.error('[inventory] snapshot:', err); setLoadingList(false); });
-    return () => unsub();
+    // Tear down any prior listener before subscribing again.
+    if (productsUnsubRef.current) {
+      productsUnsubRef.current();
+      productsUnsubRef.current = null;
+    }
+    if (!shopId) return undefined;
+    const q = query(
+      collection(db, "products"),
+      where("shopId", "==", shopId),
+      orderBy("createdAt", "desc")
+    );
+    const unsub = onSnapshot(q,
+      (snap) => {
+        setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLoadingList(false);
+      },
+      (err) => { console.error("[inventory] snapshot error:", err); setLoadingList(false); }
+    );
+    productsUnsubRef.current = unsub;
+    return () => {
+      if (productsUnsubRef.current) {
+        productsUnsubRef.current();
+        productsUnsubRef.current = null;
+      }
+    };
   }, [shopId]);
 
   const handleAddStone = () => {

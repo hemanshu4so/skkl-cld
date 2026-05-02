@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
@@ -27,35 +27,68 @@ export default function Customers() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
-  // Load customers
+  // Live customer list — single subscription per shopId
+  const customersUnsubRef = useRef(null);
   useEffect(() => {
-    if (!shopId) return;
+    // Guarantee only ONE listener: tear down any prior one before re-subscribing.
+    if (customersUnsubRef.current) {
+      customersUnsubRef.current();
+      customersUnsubRef.current = null;
+    }
+    if (!shopId) return undefined;
     const q = query(
       collection(db, "customers"),
       where("shopId", "==", shopId),
       orderBy("createdAt", "desc")
     );
-    const unsub = onSnapshot(q, (snap) => {
-      setCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setLoadingList(false);
-    }, (err) => { console.error('[customers] snapshot:', err); setLoadingList(false); });
-    return () => unsub();
+    const unsub = onSnapshot(q,
+      (snap) => {
+        setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLoadingList(false);
+      },
+      (err) => { console.error("[customers] snapshot error:", err); setLoadingList(false); }
+    );
+    customersUnsubRef.current = unsub;
+    return () => {
+      if (customersUnsubRef.current) {
+        customersUnsubRef.current();
+        customersUnsubRef.current = null;
+      }
+    };
   }, [shopId]);
 
-  // Load selected customer's purchase history
+  // Purchase history for the selected customer — separate subscription,
+  // also ref-tracked. We DO depend on `selected.id`, but only the id (a
+  // stable string) so we don't re-subscribe just because the parent
+  // re-rendered the customer object reference.
+  const historyUnsubRef = useRef(null);
+  const selectedId = selected?.id || null;
   useEffect(() => {
-    if (!selected) { setPurchases([]); return; }
+    if (historyUnsubRef.current) {
+      historyUnsubRef.current();
+      historyUnsubRef.current = null;
+    }
+    if (!shopId || !selectedId) {
+      setPurchases([]);
+      return undefined;
+    }
     const q = query(
       collection(db, "sales"),
       where("shopId", "==", shopId),
-      where("customerId", "==", selected.id),
+      where("customerId", "==", selectedId),
       orderBy("createdAt", "desc")
     );
-    const unsub = onSnapshot(q, (snap) => {
-      setPurchases(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return () => unsub();
-  }, [selected, shopId]);
+    const unsub = onSnapshot(q,
+      (snap) => setPurchases(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
+    historyUnsubRef.current = unsub;
+    return () => {
+      if (historyUnsubRef.current) {
+        historyUnsubRef.current();
+        historyUnsubRef.current = null;
+      }
+    };
+  }, [shopId, selectedId]);
 
   const handleSave = async () => {
     if (!assertShopId(shopId, toast, "Customers.handleSave")) return;
