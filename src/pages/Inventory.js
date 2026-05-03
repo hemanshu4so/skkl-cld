@@ -18,6 +18,8 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { useDebounced } from "../hooks/useDebounced";
+import { SkeletonTable } from "../components/ui/Skeleton";
 import { assertShopId } from "../lib/utils";
 import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../lib/constants";
 import { logActivity } from "../lib/activityLog";
@@ -96,6 +98,7 @@ export default function Inventory() {
   const [editId, setEditId] = useState(null);
   const [filterCat, setFilterCat] = useState("All");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounced(search, 200);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
@@ -331,12 +334,12 @@ export default function Inventory() {
   // ── Filtering ─────────────────────────────────────────────────────────
   const filtered = useMemo(() => sortByCreatedDesc(products).filter((p) => {
     const matchCat = filterCat === "All" || p.category === filterCat;
-    const ms = !search ||
-      p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.barcode?.toLowerCase().includes(search.toLowerCase()) ||
-      p.huid?.toLowerCase().includes(search.toLowerCase());
+    const ms = !debouncedSearch ||
+      p.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.barcode?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.huid?.toLowerCase().includes(debouncedSearch.toLowerCase());
     return matchCat && ms;
-  }), [products, filterCat, search]);
+  }), [products, filterCat, debouncedSearch]);
 
   const lowStock = useMemo(
     () => products.filter((p) => Number(p.qty) <= Number(p.lowStockThreshold ?? 2)),
@@ -552,7 +555,7 @@ export default function Inventory() {
       {/* Products table */}
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #eee", overflow: "hidden" }}>
         {loadingList ? (
-          <div style={{ padding: 50, textAlign: "center", color: "#bbb" }}>Loading products…</div>
+          <SkeletonTable rows={6} cols={6} />
         ) : filtered.length === 0 ? (
           <div style={{ padding: 50, textAlign: "center", color: "#bbb" }}>
             No products found. Add one above or import via CSV.

@@ -44,7 +44,26 @@ function useIsMobile(breakpoint = 768) {
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { userData, shopData, role, logout } = useAuth();
+  const { userData, shopData, role, logout, moduleAccess } = useAuth();
+
+  const moduleKeyForPath = (path) => ({
+    "/customers": "customers", "/inventory": "inventory",
+    "/billing": "billing", "/purchases": "purchases",
+    "/schemes": "schemes", "/repairs": "repairs",
+    "/reports": "reports", "/karigar": "karigar",
+    "/bullion": "bullion", "/accounting": "accounting",
+    "/activity": "activity", "/rates": "rates",
+    "/settings": "settings",
+  })[path];
+
+  const visibleMenu = MENU.filter((item) => {
+    // Dashboard always visible; otherwise consult moduleAccess
+    if (item.path === "/") return true;
+    const key = moduleKeyForPath(item.path);
+    if (!key) return true;
+    if (!moduleAccess) return true;        // null = no restrictions
+    return moduleAccess[key] !== false;    // explicit false hides it
+  });
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
@@ -88,7 +107,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="py-2">
-          {MENU.map(({ Icon, label, path }) => {
+          {visibleMenu.map(({ Icon, label, path }) => {
             const active = isActive(path);
             return (
               <button key={path} onClick={() => navigate(path)}

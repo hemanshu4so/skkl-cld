@@ -6,6 +6,8 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { useDebounced } from "../hooks/useDebounced";
+import { SkeletonTable } from "../components/ui/Skeleton";
 import { whatsappActions } from "../services/whatsapp";
 import { assertShopId } from "../lib/utils";
 
@@ -41,6 +43,7 @@ export default function Customers() {
   const [selected, setSelected] = useState(null);
   const [purchases, setPurchases] = useState([]);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounced(search, 200);
   const [saving, setSaving] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   // Live customer list — single subscription per shopId
@@ -157,10 +160,10 @@ export default function Customers() {
   };
 
   const filtered = sortByCreatedDesc(customers).filter(c =>
-    !search ||
-    c.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone?.includes(search) ||
-    c.city?.toLowerCase().includes(search.toLowerCase())
+    !debouncedSearch ||
+    c.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+    c.phone?.includes(debouncedSearch) ||
+    c.city?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   const formatDate = (ts) => {
@@ -270,7 +273,7 @@ export default function Customers() {
         {/* Customer List */}
         <div style={{ background: "#fff", borderRadius: "14px", border: "1px solid #eee", overflow: "hidden" }}>
           {loadingList ? (
-            <div style={{ padding: "50px", textAlign: "center", color: "#bbb" }}>Loading customers…</div>
+            <SkeletonTable rows={6} cols={5} />
           ) : filtered.length === 0 ? (
             <div style={{ padding: "50px", textAlign: "center", color: "#bbb" }}>No customers yet. Add your first customer above.</div>
           ) : (
