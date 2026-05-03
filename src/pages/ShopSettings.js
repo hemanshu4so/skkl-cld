@@ -44,13 +44,19 @@ const MODULES = [
   { key: "settings",   label: "Shop Settings" },
 ];
 
+// Read env vars from Vite (import.meta.env.VITE_*) AND CRA (process.env.REACT_APP_*).
+// Same resolution rules as src/firebase.js.
+const _viteEnv = (() => { try { return (typeof import.meta !== "undefined" && import.meta && import.meta.env) || {}; } catch { return {}; } })();
+const _procEnv = (() => { try { return (typeof process !== "undefined" && process.env) || {}; } catch { return {}; } })();
+const _envKey = (k) => _viteEnv[`VITE_FIREBASE_${k}`] || _viteEnv[`REACT_APP_FIREBASE_${k}`] || _procEnv[`REACT_APP_FIREBASE_${k}`] || _procEnv[`VITE_FIREBASE_${k}`] || "";
+
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  apiKey:            _envKey("API_KEY"),
+  authDomain:        _envKey("AUTH_DOMAIN"),
+  projectId:         _envKey("PROJECT_ID"),
+  storageBucket:     _envKey("STORAGE_BUCKET"),
+  messagingSenderId: _envKey("MESSAGING_SENDER_ID"),
+  appId:             _envKey("APP_ID"),
 };
 
 async function createUserWithoutHijackingSession(email, password) {

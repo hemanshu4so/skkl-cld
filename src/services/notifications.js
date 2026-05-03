@@ -57,7 +57,13 @@ export async function registerForPush(uid) {
   try {
     const messaging = await getMessagingInstance();
     if (!messaging) return null;
-    const vapid = process.env.REACT_APP_FIREBASE_VAPID_KEY;
+    // Read VAPID from either VITE or REACT_APP env (works under Vite + CRA).
+    const _viteEnv = (() => { try { return (typeof import.meta !== "undefined" && import.meta && import.meta.env) || {}; } catch { return {}; } })();
+    const _procEnv = (() => { try { return (typeof process !== "undefined" && process.env) || {}; } catch { return {}; } })();
+    const vapid = _viteEnv.VITE_FIREBASE_VAPID_KEY
+      || _viteEnv.REACT_APP_FIREBASE_VAPID_KEY
+      || _procEnv.REACT_APP_FIREBASE_VAPID_KEY
+      || _procEnv.VITE_FIREBASE_VAPID_KEY;
     if (!vapid) {
       console.warn("[notifications] REACT_APP_FIREBASE_VAPID_KEY missing — skipping FCM registration");
       return null;
