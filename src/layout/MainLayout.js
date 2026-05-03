@@ -42,11 +42,25 @@ export default function MainLayout() {
   if (locked) return <LockScreen onUnlock={handleUnlock} />;
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar />
       <NotificationBell />
-      <div style={{ flex: 1, padding: 20 }}>
-        <Outlet />
+      <div className="skkl-main" style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          padding: 20,
+          // top breathing room on mobile so the hamburger doesn't overlap
+        }}>
+          <style>{`
+            @media (max-width: 768px) {
+              .skkl-main > div { padding: 60px 12px 16px !important; }
+            }
+            @media (max-width: 768px) {
+              table { font-size: 12px !important; }
+            }
+            .skkl-table-wrap { overflow-x: auto; }
+          `}</style>
+          <Outlet />
+        </div>
       </div>
     </div>
   );
