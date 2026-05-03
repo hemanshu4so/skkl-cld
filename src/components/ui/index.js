@@ -4,4 +4,5 @@ export { Input, Select, Textarea } from "./Input";
 export { Card, CardHeader, CardBody, StatCard } from "./Card";
 export { default as Badge } from "./Badge";
 export { default as Modal } from "./Modal";
-export { default as EmptyState, Loader, Skeleton } from "./EmptyState";
+export { default as EmptyState, Loader } from "./EmptyState";
+export { default as Skeleton, SkeletonRow, SkeletonTable } from "./Skeleton";
