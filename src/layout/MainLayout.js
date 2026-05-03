@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import LockScreen from "./LockScreen";
+import NotificationBell from "./NotificationBell";
 
 // Auto-lock after this much idle time. 60s was too aggressive; 5 min is the
 // industry-standard for in-store POS.
@@ -43,6 +44,7 @@ export default function MainLayout() {
   return (
     <div style={{ display: "flex" }}>
       <Sidebar />
+      <NotificationBell />
       <div style={{ flex: 1, padding: 20 }}>
         <Outlet />
       </div>
