@@ -15,6 +15,7 @@ import {
   doc, serverTimestamp, runTransaction} from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { whatsappActions } from "../services/whatsapp";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
 import { EXCHANGE_TYPES, SPLIT_MODES } from "../lib/constants";
@@ -69,8 +70,15 @@ function PrintBill({ bill, shopData, onClose }) {
       <div style={{ background: "#fff", borderRadius: 12, maxWidth: 520, width: "100%" }}>
         <div className="no-print" style={{ padding: "14px 20px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 15 }}>Bill Preview</span>
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button onClick={handlePrint} className="btn btn-primary">🖨️ Print</button>
+            {bill.customerPhone && (
+              <button
+                onClick={() => whatsappActions({ shop: shopData }).bill(bill).onClick()}
+                className="btn btn-secondary"
+                style={{ background: "#25D366", color: "#fff", borderColor: "#25D366" }}
+              >📱 WhatsApp</button>
+            )}
             <button onClick={onClose} className="btn btn-secondary">✕ Close</button>
           </div>
         </div>

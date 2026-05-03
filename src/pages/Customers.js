@@ -6,6 +6,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { whatsappActions } from "../services/whatsapp";
 import { assertShopId } from "../lib/utils";
 
 const emptyForm = {
@@ -29,7 +30,7 @@ const _ts = (d) => {
 const sortByCreatedDesc = (arr) => [...(arr || [])].sort((a, b) => _ts(b) - _ts(a));
 
 export default function Customers() {
-  const { userData } = useAuth();
+  const { userData, shopData } = useAuth();
   const { toast } = useToast();
   const shopId = userData?.shopId;
 
@@ -354,6 +355,23 @@ export default function Customers() {
               </div>
             )}
 
+            {/* WhatsApp quick actions */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+              {selected.phone && (
+                <>
+                  <button
+                    onClick={() => whatsappActions({ shop: shopData }).birthday(selected).onClick()}
+                    style={{ padding: "5px 10px", fontSize: 11, background: "#25D366", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
+                    🎂 Birthday
+                  </button>
+                  <button
+                    onClick={() => whatsappActions({ shop: shopData }).anniversary(selected).onClick()}
+                    style={{ padding: "5px 10px", fontSize: 11, background: "#25D366", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
+                    💐 Anniversary
+                  </button>
+                </>
+              )}
+            </div>
             {/* Purchase Stats */}
             <div style={{
               display: "flex", gap: "10px", marginBottom: "16px"

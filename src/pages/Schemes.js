@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
+import { whatsappActions } from "../services/whatsapp";
 import { assertShopId } from "../lib/utils";
 import { formatINR, formatDate } from "../lib/constants";
 import { logActivity } from "../lib/activityLog";
@@ -22,7 +23,7 @@ const monthOfDateString = (s) => (s || "").slice(0, 7); // YYYY-MM
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 export default function Schemes() {
-  const { userData, shopId } = useAuth();
+  const { userData, shopId, shopData } = useAuth();
   const { toast } = useToast();
 
   const [schemes, setSchemes] = useState([]);
@@ -207,10 +208,19 @@ export default function Schemes() {
         <div className="card p-4 mb-4" style={{ borderLeft: "4px solid #FB8C00", background: "#FFF8E1" }}>
           <strong style={{ fontSize: 14 }}>🔔 Payments due this month ({dueThisMonth.length})</strong>
           <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
-            {dueThisMonth.slice(0, 6).map((s) => (
-              <div key={s.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                <span>{s.customerName} · {s.customerPhone} · {s.schemeName}</span>
-                <span style={{ fontWeight: 700 }}>{formatINR(s.monthlyAmount)}</span>
+            {dueThisMonth.slice(0, 6).map((sch) => (
+              <div key={sch.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, alignItems: "center", gap: 8 }}>
+                <span>{sch.customerName} · {sch.customerPhone} · {sch.schemeName}</span>
+                <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span style={{ fontWeight: 700 }}>{formatINR(sch.monthlyAmount)}</span>
+                  {sch.customerPhone && (
+                    <button
+                      onClick={() => whatsappActions({ shop: shopData }).reminder(sch, currentMonth()).onClick()}
+                      style={{ padding: "3px 8px", fontSize: 10, background: "#25D366", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
+                      📱 WhatsApp
+                    </button>
+                  )}
+                </span>
               </div>
             ))}
             {dueThisMonth.length > 6 && <div style={{ fontSize: 11, color: "#888" }}>… and {dueThisMonth.length - 6} more</div>}
