@@ -7,7 +7,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Package, ReceiptText, Wallet,
   Target, Wrench, BarChart3, TrendingUp, Settings, Crown, LogOut,
-  Hammer, Coins, BookOpenCheck,
+  Hammer, Coins, BookOpenCheck, History,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -23,6 +23,7 @@ const MENU = [
   { Icon: Hammer,          label: "Karigar",           path: "/karigar" },
   { Icon: Coins,           label: "Bullion",           path: "/bullion" },
   { Icon: BookOpenCheck,   label: "Accounting",        path: "/accounting" },
+  { Icon: History,         label: "Activity Log",      path: "/activity" },
   { Icon: TrendingUp,      label: "Gold/Silver Rates", path: "/rates" },
   { Icon: Settings,        label: "Settings",          path: "/settings" },
 ];

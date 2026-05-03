@@ -19,6 +19,7 @@ import ShopSettings from "./pages/ShopSettings";
 import Karigar from "./pages/Karigar";
 import Bullion from "./pages/Bullion";
 import Accounting from "./pages/Accounting";
+import ActivityLog from "./pages/ActivityLog";
 
 // 🔹 Auth + recovery
 import Login from "./pages/Login";
@@ -136,6 +137,7 @@ function App() {
               <Route path="karigar"    element={safe(<Karigar />)} />
               <Route path="bullion"    element={safe(<Bullion />)} />
               <Route path="accounting" element={safe(<Accounting />)} />
+              <Route path="activity"   element={safe(<ActivityLog />)} />
               <Route path="rates"      element={safe(<RateManager />)} />
               <Route path="settings"   element={safe(<ShopSettings />)} />
             </Route>
