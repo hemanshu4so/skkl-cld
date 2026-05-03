@@ -160,6 +160,9 @@ export const AuthProvider = ({ children }) => {
   // A simple convenience: ready === we know the answer for sure
   const ready = !loading;
 
+  // Per-user module access map (defaults: admin all, others all-on but settings)
+  const moduleAccess = userData?.modules || null;
+
   // Strict shopId — guaranteed string when no error, else null
   const shopId =
     role === "superadmin"
@@ -179,6 +182,7 @@ export const AuthProvider = ({ children }) => {
         ready,
         error,            // null | "NO_USER_DOC" | "NO_SHOP_ID" | "NO_SHOP_DOC" | "SHOP_BLOCKED"
         shopId,           // canonical shopId; falsy iff superadmin or error state
+        moduleAccess,     // {<key>: bool} or null (means 'all allowed')
         login,
         logout,
       }}
