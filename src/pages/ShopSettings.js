@@ -19,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
+import { exportShopJSON, downloadJSON } from "../services/backup";
 
 const ROLES = [
   { value: "admin",   label: "Admin (full access)" },
@@ -155,7 +156,36 @@ function CompanyTab({ shopId, userData, toast }) {
       <button onClick={save} disabled={saving} className="btn btn-primary mt-6">
         {saving ? "Saving…" : "💾 Save Settings"}
       </button>
+
+      <BackupSection shopId={shopId} userData={userData} toast={toast} />
     </>
+  );
+}
+
+function BackupSection({ shopId, userData, toast }) {
+  const [busy, setBusy] = useState(false);
+  const handleDownload = async () => {
+    if (!assertShopId(shopId, toast, "ShopSettings.backup")) return;
+    setBusy(true);
+    try {
+      const data = await exportShopJSON(shopId);
+      downloadJSON(data, `skkl-backup-${shopId}-${new Date().toISOString().slice(0, 10)}.json`);
+      await logActivity({ shopId, action: "create", entity: "backup", uid: userData?.id, name: userData?.name, meta: { tables: Object.keys(data.data).length } });
+      toast("Backup downloaded", "success");
+    } catch (err) { toast("Backup failed: " + err.message, "error"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className="card p-5 mt-6" style={{ background: "#FFFDE7", borderColor: "#FDD835" }}>
+      <h3 style={{ margin: 0 }}>📦 Backup</h3>
+      <p style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+        Download a JSON snapshot of every collection in your shop. Schedule daily
+        automated backups by deploying functions/index.js (see project README).
+      </p>
+      <button onClick={handleDownload} disabled={busy} className="btn btn-primary">
+        {busy ? "Preparing…" : "⬇️ Download Backup (JSON)"}
+      </button>
+    </div>
   );
 }
 
