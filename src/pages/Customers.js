@@ -80,7 +80,11 @@ export default function Customers() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shopId]);
 
-  const [custTxns, setCustTxns] = useState([]);
+  // Stable derived id — hoisted here so all effects below can read it
+  // without hitting a const TDZ ('Cannot access selectedId before initialization').
+  const selectedId = selected?.id || null;
+
+    const [custTxns, setCustTxns] = useState([]);
   const txnsUnsubRef = useRef(null);
   useEffect(() => {
     if (txnsUnsubRef.current) { txnsUnsubRef.current(); txnsUnsubRef.current = null; }
@@ -98,7 +102,6 @@ export default function Customers() {
   // stable string) so we don't re-subscribe just because the parent
   // re-rendered the customer object reference.
   const historyUnsubRef = useRef(null);
-  const selectedId = selected?.id || null;
   useEffect(() => {
     if (historyUnsubRef.current) {
       historyUnsubRef.current();
