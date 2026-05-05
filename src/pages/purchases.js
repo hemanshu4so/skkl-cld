@@ -17,6 +17,8 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { CATEGORIES, KARATS, ITEM_TYPES, VENDOR_TYPES, formatINR, formatDate } from "../lib/constants";
 import { logActivity } from "../lib/activityLog";
+import useShortcut from "../hooks/useShortcut";
+import useAutoFocus from "../hooks/useAutoFocus";
 import { assertShopId } from "../lib/utils";
 
 const emptyVendor = {
@@ -218,6 +220,41 @@ function VendorsTab({ shopId, userData, toast, vendors }) {
 function GRNTab({ shopId, userData, toast, vendors }) {
   const [vendorId, setVendorId] = useState("");
   const [vendorName, setVendorName] = useState("");
+  const [showInlineVendor, setShowInlineVendor] = useState(false);
+  const [inlineVendor, setInlineVendor] = useState({ name: "", phone: "", gst: "" });
+  const [inlineSaving, setInlineSaving] = useState(false);
+  const inlineVendorRef = useAutoFocus(showInlineVendor ? "open" : "closed");
+  useShortcut("ctrl+n", () => setShowInlineVendor(true));
+
+  const createInlineVendor = async () => {
+    if (!assertShopId(shopId, toast, "Purchases.GRN.inlineVendor")) return;
+    if (!inlineVendor.name) { toast("Vendor name required", "warn"); return; }
+    setInlineSaving(true);
+    try {
+      const data = {
+        shopId,
+        name: inlineVendor.name.trim(),
+        type: "wholesaler",
+        phone: inlineVendor.phone.trim(),
+        email: "", city: "", gst: inlineVendor.gst.trim(),
+        openingBalance: 0, notes: "",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      const ref = await addDoc(collection(db, "vendors"), data);
+      await logActivity({ shopId, action: "create", entity: "vendor", entityId: ref.id,
+        uid: userData?.id, name: userData?.name, meta: { name: data.name, inline: true } });
+      // Auto-select the new vendor for this GRN.
+      setVendorId(ref.id);
+      setVendorName(data.name);
+      setInlineVendor({ name: "", phone: "", gst: "" });
+      setShowInlineVendor(false);
+      toast(`Vendor ${data.name} added & selected`, "success");
+    } catch (err) {
+      toast("Failed to add vendor: " + err.message, "error");
+    } finally { setInlineSaving(false); }
+  };
+
   const [invoiceNo, setInvoiceNo] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
   const [lines, setLines] = useState([emptyLine()]);
@@ -328,16 +365,39 @@ function GRNTab({ shopId, userData, toast, vendors }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div>
             <label className="label">Vendor *</label>
-            <select value={vendorId}
-              onChange={(e) => {
-                setVendorId(e.target.value);
-                const v = vendors.find((x) => x.id === e.target.value);
-                setVendorName(v?.name || "");
-              }}
-              className="input bg-white">
-              <option value="">— Select —</option>
-              {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-            </select>
+            <div style={{ display: "flex", gap: 6 }}>
+              <select value={vendorId}
+                onChange={(e) => {
+                  setVendorId(e.target.value);
+                  const v = vendors.find((x) => x.id === e.target.value);
+                  setVendorName(v?.name || "");
+                }}
+                className="input bg-white" style={{ flex: 1 }}>
+                <option value="">— Select —</option>
+                {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
+              <button onClick={() => setShowInlineVendor((v) => !v)}
+                title="Add vendor inline (Ctrl+N)"
+                style={{ padding: "0 12px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                {showInlineVendor ? "✕" : "+"}
+              </button>
+            </div>
+            {showInlineVendor && (
+              <div style={{ marginTop: 8, padding: 10, background: "#FFFDE7", border: "1px solid #FDD835", borderRadius: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 6 }}>
+                  <input ref={inlineVendorRef} value={inlineVendor.name} onChange={(e) => setInlineVendor((v) => ({ ...v, name: e.target.value }))}
+                    placeholder="Vendor name" className="input" />
+                  <input value={inlineVendor.phone} onChange={(e) => setInlineVendor((v) => ({ ...v, phone: e.target.value }))}
+                    placeholder="Phone" className="input" />
+                  <input value={inlineVendor.gst} onChange={(e) => setInlineVendor((v) => ({ ...v, gst: e.target.value.toUpperCase() }))}
+                    placeholder="GST (opt)" className="input" style={{ textTransform: "uppercase" }} />
+                </div>
+                <button onClick={createInlineVendor} disabled={inlineSaving}
+                  style={{ marginTop: 8, padding: "6px 14px", background: "#4CAF50", color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                  {inlineSaving ? "Adding…" : "💾 Add Vendor"}
+                </button>
+              </div>
+            )}
           </div>
           <div>
             <label className="label">Invoice No</label>
