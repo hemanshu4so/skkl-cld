@@ -19,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
+import { setPin, DEFAULT_PIN, hashPin, generateSalt } from "../utils/pin";
 import { exportShopJSON, downloadJSON } from "../services/backup";
 
 const ROLES = [
@@ -159,6 +160,8 @@ function CompanyTab({ shopId, userData, toast }) {
         {field("Account Number", "accountNo")}
         {field("IFSC Code", "ifsc")}
       </div>
+      <PinLockToggleSection shopId={shopId} userData={userData} toast={toast} />
+
       <button onClick={save} disabled={saving} className="btn btn-primary mt-6">
         {saving ? "Saving…" : "💾 Save Settings"}
       </button>
@@ -224,12 +227,16 @@ function UsersTab({ shopId, userData, toast }) {
     setSubmitting(true);
     try {
       const uid = await createUserWithoutHijackingSession(form.email.trim(), form.password);
+      const _salt = generateSalt();
+      const _hash = await hashPin(DEFAULT_PIN, _salt);
       await setDoc(doc(db, "users", uid), {
         name: form.name.trim(),
         email: form.email.trim(),
         role: form.role,
         modules: form.modules,
         shopId,
+        pinHash: _hash,
+        pinSalt: _salt,
         createdAt: serverTimestamp(),
         createdByUid: userData?.id || null,
       });
@@ -375,6 +382,11 @@ function UsersTab({ shopId, userData, toast }) {
                       </td>
                       <td style={{ padding: "8px 14px" }}>
                         <button onClick={() => handleEdit(u)} className="btn btn-secondary" style={{ padding: "4px 10px", fontSize: 11, marginRight: 6 }}>Edit</button>
+                        <button onClick={async () => {
+                          if (!window.confirm(`Reset PIN for ${u.name} to ${DEFAULT_PIN}?`)) return;
+                          try { await setPin({ collection: "users", uid: u.id, pin: DEFAULT_PIN }); toast(`PIN reset to ${DEFAULT_PIN}`, "success"); }
+                          catch (err) { toast(err.message, "error"); }
+                        }} className="btn btn-secondary" style={{ padding: "4px 10px", fontSize: 11, marginRight: 6 }}>Reset PIN</button>
                         <button onClick={() => handleDelete(u)} className="btn btn-danger" style={{ padding: "4px 10px", fontSize: 11 }} disabled={u.id === userData?.id}>Remove</button>
                       </td>
                     </tr>
@@ -403,4 +415,57 @@ function defaultModulesFor(role) {
     rates: false, reports: false, purchases: false, karigar: false, bullion: false,
     accounting: false, activity: false, settings: false,
   };
+}
+
+
+function PinLockToggleSection({ shopId, userData, toast }) {
+  const [enabled, setEnabled] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!shopId) { setLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "shops", shopId));
+        if (cancelled) return;
+        if (snap.exists()) {
+          const v = snap.data().pinLockEnabled;
+          setEnabled(v === undefined ? true : !!v);
+        }
+      } finally { if (!cancelled) setLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [shopId]);
+  const toggle = async () => {
+    if (!shopId) return;
+    setBusy(true);
+    try {
+      await updateDoc(doc(db, "shops", shopId), { pinLockEnabled: !enabled, updatedAt: serverTimestamp() });
+      setEnabled((v) => !v);
+      toast(`PIN lock ${!enabled ? "enabled" : "disabled"}`, "success");
+    } catch (err) { toast(err.message, "error"); }
+    setBusy(false);
+  };
+  if (loading) return null;
+  return (
+    <div className="card p-4 mt-4" style={{ background: "#FFFDE7", borderColor: "#FDD835" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+        <div>
+          <strong style={{ fontSize: 13 }}>🔒 Idle PIN lock</strong>
+          <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
+            Locks the screen after 5 minutes of inactivity. Default PIN for new
+            users is <code>1234</code>; admin can reset from the Users tab.
+          </div>
+        </div>
+        <button onClick={toggle} disabled={busy}
+          style={{ padding: "6px 14px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid",
+            background: enabled ? "#1B5E20" : "#E53935",
+            borderColor: enabled ? "#1B5E20" : "#E53935",
+            color: "#fff", cursor: "pointer" }}>
+          {busy ? "…" : enabled ? "Enabled — click to disable" : "Disabled — click to enable"}
+        </button>
+      </div>
+    </div>
+  );
 }

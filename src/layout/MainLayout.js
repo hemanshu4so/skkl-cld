@@ -4,17 +4,20 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import LockScreen from "./LockScreen";
 import NotificationBell from "./NotificationBell";
+import { useAuth } from "../context/AuthContext";
 
 // Auto-lock after this much idle time. 60s was too aggressive; 5 min is the
 // industry-standard for in-store POS.
 const IDLE_LOCK_MS = 5 * 60 * 1000;
 
 export default function MainLayout() {
-  const [locked, setLocked] = useState(localStorage.getItem("locked") === "true");
+  const { shopData } = useAuth();
+  const lockEnabled = shopData?.pinLockEnabled !== false;
+  const [locked, setLocked] = useState(lockEnabled && localStorage.getItem("locked") === "true");
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (locked) return;
+    if (locked || !lockEnabled) return;
 
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -32,14 +35,14 @@ export default function MainLayout() {
       if (timerRef.current) clearTimeout(timerRef.current);
       evts.forEach((ev) => window.removeEventListener(ev, reset));
     };
-  }, [locked]);
+  }, [locked, lockEnabled]);
 
   const handleUnlock = () => {
     setLocked(false);
     localStorage.setItem("locked", "false");
   };
 
-  if (locked) return <LockScreen onUnlock={handleUnlock} />;
+  if (locked && lockEnabled) return <LockScreen onUnlock={handleUnlock} />;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>

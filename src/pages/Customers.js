@@ -7,6 +7,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { useDebounced } from "../hooks/useDebounced";
+import { recordCustomerTxn, computeCustomerBalance } from "../services/customerLedger";
 import useShortcut from "../hooks/useShortcut";
 import useAutoFocus from "../hooks/useAutoFocus";
 import { SkeletonTable } from "../components/ui/Skeleton";
@@ -79,7 +80,20 @@ export default function Customers() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shopId]);
 
-  // Purchase history for the selected customer — separate subscription,
+  const [custTxns, setCustTxns] = useState([]);
+  const txnsUnsubRef = useRef(null);
+  useEffect(() => {
+    if (txnsUnsubRef.current) { txnsUnsubRef.current(); txnsUnsubRef.current = null; }
+    if (!shopId || !selectedId) { setCustTxns([]); return undefined; }
+    const u = onSnapshot(query(collection(db, "customerTransactions"),
+      where("shopId", "==", shopId), where("customerId", "==", selectedId)),
+      (snap) => setCustTxns(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.warn("[customerTxn] snapshot:", err.message));
+    txnsUnsubRef.current = u;
+    return () => { if (txnsUnsubRef.current) { txnsUnsubRef.current(); txnsUnsubRef.current = null; } };
+  }, [shopId, selectedId]);
+
+    // Purchase history for the selected customer — separate subscription,
   // also ref-tracked. We DO depend on `selected.id`, but only the id (a
   // stable string) so we don't re-subscribe just because the parent
   // re-rendered the customer object reference.
@@ -449,7 +463,9 @@ export default function Customers() {
             </div>
 
             {/* Purchase History */}
-            <h3 style={{ fontSize: "13px", fontWeight: "600", color: "#555", marginBottom: "10px" }}>
+            <LedgerPanel shopId={shopId} userData={userData} customer={selected} sales={purchases} txns={custTxns} />
+
+            <h3 style={{ fontSize: "13px", fontWeight: "600", color: "#555", marginBottom: "10px", marginTop: 18 }}>
               Purchase History
             </h3>
             {purchases.length === 0 ? (
@@ -478,6 +494,85 @@ export default function Customers() {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+
+function LedgerPanel({ shopId, userData, customer, sales, txns }) {
+  const { balance, events } = computeCustomerBalance(sales || [], txns || []);
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState("receipt");
+  const [amount, setAmount] = useState("");
+  const [mode, setMode] = useState("cash");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    if (!amount || Number(amount) <= 0) return;
+    setBusy(true);
+    try {
+      await recordCustomerTxn({ shopId, userData, customer, type, amount, mode, notes });
+      setAmount(""); setNotes(""); setOpen(false);
+    } catch (err) { alert(err.message); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <h3 style={{ fontSize: 13, fontWeight: 600, color: "#555", margin: 0 }}>Ledger</h3>
+        <button onClick={() => setOpen((v) => !v)}
+          style={{ background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>
+          {open ? "Cancel" : "+ Receipt / Note"}
+        </button>
+      </div>
+      <div style={{ padding: "10px 12px", borderRadius: 8,
+        background: balance > 0 ? "#FFEBEE" : balance < 0 ? "#E8F5E9" : "#F5F5F5", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#666" }}>Outstanding balance</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: balance > 0 ? "#C62828" : balance < 0 ? "#1B5E20" : "#1a1a2e" }}>
+          {balance === 0 ? "₹0 (cleared)"
+           : balance > 0 ? `₹${Math.abs(balance).toLocaleString("en-IN")} due from customer`
+           : `₹${Math.abs(balance).toLocaleString("en-IN")} customer credit`}
+        </div>
+      </div>
+      {open && (
+        <div style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8, marginBottom: 8, background: "#FFFDE7" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <select value={type} onChange={(e) => setType(e.target.value)} style={{ padding: 6, borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }}>
+              <option value="receipt">Receipt (cash in)</option>
+              <option value="advance">Advance (cash in)</option>
+              <option value="credit_note">Credit note</option>
+              <option value="debit_note">Debit note</option>
+            </select>
+            <select value={mode} onChange={(e) => setMode(e.target.value)} style={{ padding: 6, borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }}>
+              {["cash","upi","card","bank","cheque"].map((m) => <option key={m}>{m}</option>)}
+            </select>
+            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount ₹"
+              style={{ padding: 6, borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }} />
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes / ref"
+              style={{ padding: 6, borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }} />
+          </div>
+          <button onClick={submit} disabled={busy}
+            style={{ marginTop: 8, padding: "6px 14px", background: "#4CAF50", color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            {busy ? "Saving…" : "💾 Record"}
+          </button>
+        </div>
+      )}
+      <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid #f0f0f0", borderRadius: 8 }}>
+        {events.length === 0
+          ? <div style={{ padding: 12, textAlign: "center", fontSize: 12, color: "#bbb" }}>No transactions yet</div>
+          : events.map((e, i) => (
+            <div key={i} style={{ padding: "6px 10px", borderTop: i === 0 ? "none" : "1px solid #f5f5f5", display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+              <span style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontWeight: 600 }}>{e.kind}</span>
+                <span style={{ color: "#888" }}>{e.notes}</span>
+              </span>
+              <span>
+                {e.debit > 0  && <span style={{ color: "#C62828", fontWeight: 700 }}>+₹{e.debit.toLocaleString("en-IN")}</span>}
+                {e.credit > 0 && <span style={{ color: "#1B5E20", fontWeight: 700 }}>-₹{e.credit.toLocaleString("en-IN")}</span>}
+              </span>
+            </div>
+          ))}
       </div>
     </div>
   );

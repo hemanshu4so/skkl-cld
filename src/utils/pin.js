@@ -83,3 +83,6 @@ export async function setPin({ collection, uid, pin }) {
     pin: deleteField(),
   });
 }
+
+
+export const DEFAULT_PIN = "1234";
