@@ -7,13 +7,16 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { useDebounced } from "../hooks/useDebounced";
+import useShortcut from "../hooks/useShortcut";
+import useAutoFocus from "../hooks/useAutoFocus";
 import { SkeletonTable } from "../components/ui/Skeleton";
 import { whatsappActions } from "../services/whatsapp";
 import { assertShopId } from "../lib/utils";
 
 const emptyForm = {
   name: "", phone: "", email: "", address: "",
-  city: "", anniversary: "", birthday: "", notes: ""
+  city: "", anniversary: "", birthday: "", notes: "",
+  aadhaar: "", pan: "", gst: "",
 };
 
 
@@ -123,7 +126,10 @@ export default function Customers() {
         anniversary: form.anniversary,
         birthday: form.birthday,
         notes: form.notes,
-        updatedAt: serverTimestamp()
+        aadhaar: (form.aadhaar || "").trim(),
+        pan:     (form.pan || "").trim().toUpperCase(),
+        gst:     (form.gst || "").trim().toUpperCase(),
+        updatedAt: serverTimestamp(),
       };
       if (editId) {
         await updateDoc(doc(db, "customers", editId), data);
@@ -145,7 +151,8 @@ export default function Customers() {
       name: c.name || "", phone: c.phone || "",
       email: c.email || "", address: c.address || "",
       city: c.city || "", anniversary: c.anniversary || "",
-      birthday: c.birthday || "", notes: c.notes || ""
+      birthday: c.birthday || "", notes: c.notes || "",
+      aadhaar: c.aadhaar || "", pan: c.pan || "", gst: c.gst || "",
     });
     setEditId(c.id);
     setShowForm(true);
@@ -159,7 +166,10 @@ export default function Customers() {
     if (selected?.id === id) setSelected(null);
   };
 
-  const filtered = sortByCreatedDesc(customers).filter(c =>
+  useShortcut("ctrl+n", () => { setShowForm(true); setEditId(null); setForm(emptyForm); });
+  const nameRef = useAutoFocus(showForm ? (editId || "new") : "closed");
+
+    const filtered = sortByCreatedDesc(customers).filter(c =>
     !debouncedSearch ||
     c.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
     c.phone?.includes(debouncedSearch) ||
@@ -216,7 +226,13 @@ export default function Customers() {
             {editId ? "✏️ Edit Customer" : "➕ New Customer"}
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "14px", marginBottom: "14px" }}>
-            {inp("Full Name *", "name", "text", "Customer name")}
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#666" }}>Full Name *</label>
+              <input ref={nameRef} type="text" value={form.name}
+                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Customer name"
+                style={{ padding: "9px 12px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", outline: "none", boxSizing: "border-box" }} />
+            </div>
             {inp("Phone *", "phone", "tel", "Mobile number")}
             {inp("Email", "email", "email", "Optional")}
             {inp("City", "city", "text", "City")}
@@ -247,7 +263,26 @@ export default function Customers() {
             />
           </div>
           
-          <button
+          {/* KYC — optional */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "14px", marginBottom: "18px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#666" }}>Aadhaar Number</label>
+              <input value={form.aadhaar} onChange={e => setForm(f => ({ ...f, aadhaar: e.target.value }))}
+                placeholder="optional" style={{ padding: "9px 12px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px" }} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#666" }}>PAN</label>
+              <input value={form.pan} onChange={e => setForm(f => ({ ...f, pan: e.target.value }))}
+                placeholder="ABCDE1234F" style={{ padding: "9px 12px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", textTransform: "uppercase" }} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#666" }}>GST Number</label>
+              <input value={form.gst} onChange={e => setForm(f => ({ ...f, gst: e.target.value }))}
+                placeholder="optional" style={{ padding: "9px 12px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", textTransform: "uppercase" }} />
+            </div>
+          </div>
+
+                    <button
             onClick={handleSave} disabled={saving}
             style={{
               padding: "11px 28px", fontSize: "14px", fontWeight: "700",
@@ -275,7 +310,21 @@ export default function Customers() {
           {loadingList ? (
             <SkeletonTable rows={6} cols={5} />
           ) : filtered.length === 0 ? (
-            <div style={{ padding: "50px", textAlign: "center", color: "#bbb" }}>No customers yet. Add your first customer above.</div>
+            <div style={{ padding: "30px 18px", textAlign: "center", color: "#888" }}>
+              {debouncedSearch
+                ? <>
+                    <div style={{ marginBottom: 10 }}>No matches for <strong>"{debouncedSearch}"</strong>.</div>
+                    <button onClick={() => {
+                        const q = debouncedSearch.trim();
+                        setForm({ ...emptyForm, name: /[a-z]/i.test(q) ? q : "", phone: /^[0-9 +-]+$/.test(q) ? q.replace(/\D/g, "") : "" });
+                        setShowForm(true); setEditId(null); setSelected(null);
+                      }}
+                      className="btn btn-primary" style={{ padding: "8px 16px", fontSize: 13 }}>
+                      ➕ Add new customer with this {/^[0-9 +-]+$/.test(debouncedSearch) ? "phone" : "name"}
+                    </button>
+                  </>
+                : "No customers yet. Add your first customer above."}
+            </div>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
@@ -336,6 +385,14 @@ export default function Customers() {
               <button onClick={() => setSelected(null)}
                 style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#aaa" }}>×</button>
             </div>
+
+            {(selected.aadhaar || selected.pan || selected.gst) && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                {selected.pan     && <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 12, background: "#E8EAF6", color: "#283593", fontWeight: 700 }}>PAN: {selected.pan}</span>}
+                {selected.gst     && <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 12, background: "#FFF8E1", color: "#7D5A0A", fontWeight: 700 }}>GST: {selected.gst}</span>}
+                {selected.aadhaar && <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 12, background: "#F5F5F5", color: "#555", fontWeight: 700 }}>Aadhaar: ****{selected.aadhaar.slice(-4)}</span>}
+              </div>
+            )}
 
             {/* Info */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "16px", fontSize: "13px" }}>

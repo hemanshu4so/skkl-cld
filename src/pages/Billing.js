@@ -16,6 +16,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { whatsappActions } from "../services/whatsapp";
+import useShortcut from "../hooks/useShortcut";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
 import { EXCHANGE_TYPES, SPLIT_MODES } from "../lib/constants";
@@ -291,6 +292,9 @@ export default function Billing() {
     return () => { if (heldBillsUnsubRef.current) { heldBillsUnsubRef.current(); heldBillsUnsubRef.current = null; } };
   }, [shopId]);
 
+  useShortcut("ctrl+b", () => productInputRef.current?.focus());
+  useShortcut("ctrl+n", () => customerInputRef.current?.focus());
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e) => {
@@ -389,7 +393,32 @@ export default function Billing() {
   const balance = Math.max(0, grandTotal - effectivePaid);
 
   // Filtering
-  const filteredCustomers = sortByCreatedDesc(customers).filter((c) =>
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
+  const addInlineCustomer = async () => {
+    const q = (customerSearch || "").trim();
+    if (!q) { toast("Type a name or phone first", "warn"); return; }
+    if (!shopId) { toast("Shop is not loaded yet", "error"); return; }
+    setCreatingCustomer(true);
+    try {
+      const isPhone = /^[0-9 +-]+$/.test(q);
+      const data = {
+        shopId, name: isPhone ? "" : q,
+        phone: isPhone ? q.replace(/\D/g, "") : "",
+        email: "", address: "", city: "",
+        anniversary: "", birthday: "", notes: "",
+        aadhaar: "", pan: "", gst: "",
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      };
+      const ref = await addDoc(collection(db, "customers"), data);
+      setSelectedCustomer({ id: ref.id, ...data });
+      setCustomerSearch("");
+      toast("Customer added", "success");
+    } catch (err) {
+      toast("Failed to add customer: " + err.message, "error");
+    } finally { setCreatingCustomer(false); }
+  };
+
+    const filteredCustomers = sortByCreatedDesc(customers).filter((c) =>
     c.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
     c.phone?.includes(customerSearch)
   ).slice(0, 8);

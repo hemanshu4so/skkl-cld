@@ -19,6 +19,10 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { useDebounced } from "../hooks/useDebounced";
+import useShortcut from "../hooks/useShortcut";
+import useAutoFocus from "../hooks/useAutoFocus";
+import QRImage from "../components/QRImage";
+import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../lib/tagFormats";
 import { SkeletonTable } from "../components/ui/Skeleton";
 import { assertShopId } from "../lib/utils";
 import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../lib/constants";
@@ -88,7 +92,7 @@ const _ts = (d) => {
 const sortByCreatedDesc = (arr) => [...(arr || [])].sort((a, b) => _ts(b) - _ts(a));
 
 export default function Inventory() {
-  const { userData } = useAuth();
+  const { userData, shopData } = useAuth();
   const { toast } = useToast();
   const shopId = userData?.shopId;
 
@@ -140,7 +144,27 @@ export default function Inventory() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shopId]);
 
-  const handleAddStone = () => {
+  const searchInputRef = useRef(null);
+  const productNameRef = useAutoFocus(showForm ? (editId || "new") : "closed");
+  useShortcut("ctrl+n", () => { setShowForm(true); setEditId(null); setForm(emptyForm); });
+  useShortcut("ctrl+b", () => searchInputRef.current?.focus());
+
+  const handleSearchKey = (e) => {
+    if (e.key !== "Enter") return;
+    const code = (search || "").trim();
+    if (!code) return;
+    const hit = products.find(
+      (p) => (p.barcode || "").toLowerCase() === code.toLowerCase()
+        || (p.huid || "").toLowerCase() === code.toLowerCase()
+    );
+    if (hit) {
+      handleEdit(hit);
+      setSearch("");
+      toast(`Scanned: ${hit.name}`, "success");
+    }
+  };
+
+    const handleAddStone = () => {
     setForm((f) => ({
       ...f, stones: [...(f.stones || []), { type: "Diamond", weight: "", count: "1", value: "" }],
     }));
@@ -437,7 +461,7 @@ export default function Inventory() {
 
       {/* Print sheet modal */}
       {printOpen && (
-        <PrintTags items={printSelected} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
+        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
       )}
 
       {/* Add/Edit form */}
@@ -533,10 +557,11 @@ export default function Inventory() {
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
         <input
-          type="text" value={search}
+          ref={searchInputRef} type="text" value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Search by name / barcode / HUID..."
-          style={{ padding: "9px 14px", border: "1.5px solid #ddd", borderRadius: 10, fontSize: 13, outline: "none", width: 280 }}
+          onKeyDown={handleSearchKey}
+          placeholder="🔍 Search / scan barcode / HUID  (Ctrl+B)"
+          style={{ padding: "9px 14px", border: "1.5px solid #ddd", borderRadius: 10, fontSize: 13, outline: "none", width: 320 }}
         />
         {["All", ...CATEGORIES].map((c) => (
           <button
@@ -627,8 +652,54 @@ export default function Inventory() {
 }
 
 // ───────── Print tag sheet ──────────────────────────────────────────────
-function PrintTags({ items, onClose }) {
-  const ref = useRef(null);
+function TagBody({ p, fmt }) {
+  const fields = fmt.fields;
+  return (
+    <div style={{
+      width: fmt.width * SCALE, height: fmt.height * SCALE,
+      border: "1px dashed #999", borderRadius: 4, overflow: "hidden",
+      padding: 4, fontSize: Math.max(7, Math.min(10, fmt.height / 4)),
+      lineHeight: 1.15, display: "flex", flexDirection: "column", justifyContent: "space-between",
+      boxSizing: "border-box",
+    }}>
+      <div style={{ overflow: "hidden" }}>
+        {fields.includes("name") && (
+          <div style={{ fontWeight: 700, fontSize: Math.max(8, Math.min(11, fmt.height / 3.2)), whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {p.name}
+          </div>
+        )}
+        <div style={{ fontSize: 8, color: "#555", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {fields.includes("category") && <span>{p.category} </span>}
+          {fields.includes("karat") && <span>{p.karat} </span>}
+          {fields.includes("weight") && <span>· {p.weight}g </span>}
+          {fields.includes("netWeight") && p.netWeight ? <span>(net {p.netWeight}g) </span> : null}
+        </div>
+        {fields.includes("huid") && p.huid && <div style={{ fontSize: 7, fontFamily: "monospace" }}>HUID {p.huid}</div>}
+        {fields.includes("rate") && (
+          <div style={{ fontSize: Math.max(8, Math.min(11, fmt.height / 3.2)), fontWeight: 800 }}>
+            {p.price ? `₹${Number(p.price).toLocaleString("en-IN")}` : ""}
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4 }}>
+        {(fields.includes("barcodeQR") || fields.includes("barcodeOnly")) && (
+          <div style={{ flex: 1, overflow: "hidden" }}>
+            <BarcodeStripes value={p.barcode} />
+            <div style={{ fontSize: 6, fontFamily: "monospace", textAlign: "center" }}>{p.barcode}</div>
+          </div>
+        )}
+        {(fields.includes("barcodeQR") || fields.includes("qrOnly")) && p.barcode && (
+          <QRImage value={p.barcode} size={fmt.qrSize * 4} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PrintTags({ items, onClose, shopConfig }) {
+  const defaultFormatId = shopConfig?.defaultTagFormat || "medium_50x25";
+  const [fmtId, setFmtId] = useState(defaultFormatId);
+  const fmt = getFormat(fmtId);
   const print = () => window.print();
   return (
     <div style={{
@@ -638,24 +709,23 @@ function PrintTags({ items, onClose }) {
     }}>
       <div style={{ background: "#fff", borderRadius: 12, maxWidth: 800, width: "100%" }}>
         <div className="no-print" style={{ display: "flex", justifyContent: "space-between", padding: "12px 18px", borderBottom: "1px solid #eee" }}>
-          <strong>Print Tags ({items.length})</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <strong>Print Tags ({items.length})</strong>
+            <select value={fmtId} onChange={(e) => setFmtId(e.target.value)}
+              style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }}>
+              {TAG_FORMATS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+            </select>
+            <span style={{ fontSize: 11, color: "#888" }}>
+              Fields: {fmt.fields.map((f) => FIELD_LABELS[f] || f).join(" · ")}
+            </span>
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={print} className="btn btn-primary">🖨️ Print</button>
             <button onClick={onClose} className="btn btn-secondary">✕ Close</button>
           </div>
         </div>
-        <div id="printArea" ref={ref} style={{ padding: 20, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-          {items.map((p) => (
-            <div key={p.id} style={{ border: "1px dashed #999", padding: 8, textAlign: "center", borderRadius: 6 }}>
-              <div style={{ fontWeight: 700, fontSize: 12 }}>{p.name}</div>
-              <div style={{ fontSize: 10, color: "#555" }}>{p.category} {p.karat} · {p.weight}g</div>
-              {p.huid && <div style={{ fontSize: 10, fontFamily: "monospace" }}>HUID: {p.huid}</div>}
-              <div style={{ marginTop: 4 }}><BarcodeStripes value={p.barcode} /></div>
-              <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4 }}>
-                {p.price ? `₹${Number(p.price).toLocaleString("en-IN")}` : ""}
-              </div>
-            </div>
-          ))}
+        <div id="printArea" ref={ref} style={{ padding: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {items.map((p) => <TagBody key={p.id} p={p} fmt={fmt} />)}
         </div>
         <style>{`
           @media print {
