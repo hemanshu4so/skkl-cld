@@ -17,6 +17,8 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { whatsappActions } from "../services/whatsapp";
 import useShortcut from "../hooks/useShortcut";
+import PrintRenderer from "../components/PrintRenderer";
+import { pickDefault } from "../lib/printTemplate";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
 import { EXCHANGE_TYPES, SPLIT_MODES } from "../lib/constants";
@@ -60,7 +62,7 @@ function calcLine({ category, weight, karat, makingType, makingCharge, qty, cust
 }
 
 // ───── Print bill ─────
-function PrintBill({ bill, shopData, onClose }) {
+function PrintBill({ bill, shopData, onClose, template }) {
   const handlePrint = () => window.print();
   return (
     <div style={{
@@ -83,95 +85,8 @@ function PrintBill({ bill, shopData, onClose }) {
             <button onClick={onClose} className="btn btn-secondary">✕ Close</button>
           </div>
         </div>
-        <div id="printArea" style={{ padding: 24, fontFamily: "monospace" }}>
-          <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{shopData?.company?.name || shopData?.name || "SKKL Jewellers"}</div>
-            {shopData?.company?.address && <div style={{ fontSize: 11 }}>{shopData.company.address}</div>}
-            {shopData?.company?.phone && <div style={{ fontSize: 11 }}>Ph: {shopData.company.phone}</div>}
-            {shopData?.company?.gst && <div style={{ fontSize: 11 }}>GSTIN: {shopData.company.gst}</div>}
-          </div>
-          <div style={{ borderTop: "2px dashed #333", borderBottom: "2px dashed #333", padding: "6px 0", fontSize: 11 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>Bill: <b>{bill.billNo}</b></span>
-              <span>{new Date(bill.createdAt?.toDate ? bill.createdAt.toDate() : Date.now()).toLocaleDateString("en-IN")}</span>
-            </div>
-            <div>Customer: <b>{bill.customerName || "Walk-in"}</b>{bill.customerPhone && <span> · {bill.customerPhone}</span>}</div>
-            <div style={{ color: "#555" }}>Gold ₹{bill.goldRate}/10g · Silver ₹{bill.silverRate}/kg</div>
-          </div>
-
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, marginTop: 8 }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #333" }}>
-                <th style={{ textAlign: "left" }}>Item</th>
-                <th style={{ textAlign: "right" }}>Qty</th>
-                <th style={{ textAlign: "right" }}>Wt</th>
-                <th style={{ textAlign: "right" }}>Per</th>
-                <th style={{ textAlign: "right" }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bill.items?.map((it, i) => (
-                <tr key={i} style={{ borderBottom: "1px dotted #ccc" }}>
-                  <td>
-                    <div>{it.name}</div>
-                    <div style={{ fontSize: 9, color: "#666" }}>{it.category} {it.karat}{it.lineDiscountAmount > 0 && ` · disc -₹${it.lineDiscountAmount}`}</div>
-                  </td>
-                  <td style={{ textAlign: "right" }}>{it.qty}</td>
-                  <td style={{ textAlign: "right" }}>{it.weight}g</td>
-                  <td style={{ textAlign: "right" }}>₹{Number(it.perUnit || it.total || 0).toLocaleString("en-IN")}</td>
-                  <td style={{ textAlign: "right", fontWeight: 700 }}>₹{Number(it.lineTotal || it.total || 0).toLocaleString("en-IN")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {bill.exchanges?.length > 0 && (
-            <div style={{ marginTop: 8, padding: "6px 0", borderTop: "1px dotted #333", fontSize: 11 }}>
-              <strong>Exchange:</strong>
-              {bill.exchanges.map((ex, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>{ex.label} {ex.weight}g @ {ex.purity * 100}%</span>
-                  <span style={{ color: "green" }}>-₹{Number(ex.value).toLocaleString("en-IN")}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ borderTop: "1px solid #333", paddingTop: 6, fontSize: 11, marginTop: 6 }}>
-            {[
-              ["Subtotal", bill.subtotal],
-              bill.exchangeValue > 0 ? ["Exchange credit", -bill.exchangeValue] : null,
-              bill.discount > 0 ? ["Bill discount", -bill.discount] : null,
-              bill.tax > 0 ? [`GST (${bill.taxPercent}%)`, bill.tax] : null,
-            ].filter(Boolean).map(([l, v]) => (
-              <div key={l} style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>{l}</span>
-                <span style={{ color: v < 0 ? "green" : "inherit" }}>{v < 0 ? "-" : ""}₹{Math.abs(v).toLocaleString("en-IN")}</span>
-              </div>
-            ))}
-            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 14, borderTop: "2px solid #333", marginTop: 4, paddingTop: 4 }}>
-              <span>TOTAL</span>
-              <span>₹{Number(bill.total).toLocaleString("en-IN")}</span>
-            </div>
-            {bill.payments?.length > 0 && (
-              <div style={{ marginTop: 4 }}>
-                {bill.payments.map((p, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 10 }}>
-                    <span>{p.mode.toUpperCase()}{p.ref ? ` (${p.ref})` : ""}</span>
-                    <span>₹{Number(p.amount).toLocaleString("en-IN")}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {bill.balance > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", color: "red", fontWeight: 700 }}>
-                <span>Balance Due</span><span>₹{Number(bill.balance).toLocaleString("en-IN")}</span>
-              </div>
-            )}
-          </div>
-          <div style={{ borderTop: "2px dashed #333", marginTop: 12, paddingTop: 6, textAlign: "center", fontSize: 10, color: "#666" }}>
-            Thank you for shopping with us!
-          </div>
+        <div id="printArea">
+          <PrintRenderer template={template} doc={bill} shop={shopData} />
         </div>
       </div>
       <style>{`
@@ -228,6 +143,25 @@ export default function Billing() {
 
   const [saving, setSaving] = useState(false);
   const [printBill, setPrintBill] = useState(null);
+  // Default bill template (Phase 5). Falls back to PrintRenderer's built-in
+  // layout when no admin-configured default exists.
+  const [billTemplate, setBillTemplate] = useState(null);
+  const billTemplateRef = useRef(null);
+  useEffect(() => {
+    if (billTemplateRef.current) { billTemplateRef.current(); billTemplateRef.current = null; }
+    if (!shopId) return undefined;
+    const u = onSnapshot(
+      query(collection(db, "printTemplates"),
+        where("shopId", "==", shopId), where("kind", "==", "bill")),
+      (snap) => {
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setBillTemplate(pickDefault(list, "bill"));
+      },
+      (err) => console.warn("[billing.template] snapshot:", err.message)
+    );
+    billTemplateRef.current = u;
+    return () => { if (billTemplateRef.current) { billTemplateRef.current(); billTemplateRef.current = null; } };
+  }, [shopId]);
 
   // Snapshot subscription refs — guarantee one listener per query, defensive
   // double-unsub guards on every effect re-run / strict-mode double-mount.
@@ -550,7 +484,7 @@ export default function Billing() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1280 }}>
-      {printBill && <PrintBill bill={printBill} shopData={shopData} onClose={() => setPrintBill(null)} />}
+      {printBill && <PrintBill bill={printBill} shopData={shopData} template={billTemplate} onClose={() => setPrintBill(null)} />}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a1a2e", margin: 0 }}>🧾 New Sale / Billing</h1>
