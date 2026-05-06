@@ -22,6 +22,7 @@ import Accounting from "./pages/Accounting";
 import ActivityLog from "./pages/ActivityLog";
 import Orders from "./pages/Orders";
 import PrintTemplates from "./pages/PrintTemplates";
+import Vouchers from "./pages/Vouchers";
 
 // 🔹 Auth + recovery
 import Login from "./pages/Login";
@@ -141,6 +142,7 @@ function App() {
               <Route path="accounting" element={safe(<Accounting />)} />
               <Route path="orders"     element={safe(<Orders />)} />
               <Route path="print-templates" element={safe(<PrintTemplates />)} />
+              <Route path="vouchers"  element={safe(<Vouchers />)} />
               <Route path="activity"   element={safe(<ActivityLog />)} />
               <Route path="rates"      element={safe(<RateManager />)} />
               <Route path="settings"   element={safe(<ShopSettings />)} />

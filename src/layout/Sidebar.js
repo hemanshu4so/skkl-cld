@@ -10,7 +10,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Package, ReceiptText, Wallet,
   Target, Wrench, BarChart3, TrendingUp, Settings, Crown, LogOut,
-  Hammer, Coins, BookOpenCheck, History, Menu, X, ClipboardList, Printer,
+  Hammer, Coins, BookOpenCheck, History, Menu, X, ClipboardList, Printer, FileText,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -19,6 +19,7 @@ const MENU = [
   { Icon: Users,           label: "Customers",         path: "/customers" },
   { Icon: Package,         label: "Inventory",         path: "/inventory" },
   { Icon: ReceiptText,     label: "Billing",           path: "/billing" },
+  { Icon: FileText,        label: "Vouchers",          path: "/vouchers" },
   { Icon: Wallet,          label: "Purchases",         path: "/purchases" },
   { Icon: Target,          label: "Schemes",           path: "/schemes" },
   { Icon: Wrench,          label: "Repairs",           path: "/repairs" },
@@ -50,7 +51,8 @@ export default function Sidebar() {
 
   const moduleKeyForPath = (path) => ({
     "/customers": "customers", "/inventory": "inventory",
-    "/billing": "billing", "/purchases": "purchases",
+    "/billing": "billing",
+    "/vouchers": "billing", "/purchases": "purchases",
     "/schemes": "schemes", "/repairs": "repairs",
     "/orders": "orders",
     "/reports": "reports", "/karigar": "karigar",
