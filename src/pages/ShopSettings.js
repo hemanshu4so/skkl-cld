@@ -20,6 +20,7 @@ import { useToast } from "../hooks/useToast";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
 import { setPin, DEFAULT_PIN, hashPin, generateSalt } from "../utils/pin";
+import { uploadShopFile } from "../lib/upload";
 import { exportShopJSON, downloadJSON } from "../services/backup";
 
 const ROLES = [
@@ -104,7 +105,7 @@ export default function ShopSettings() {
   );
 }
 
-const COMPANY_EMPTY = { name: "", address: "", phone: "", email: "", gst: "", bankName: "", accountNo: "", ifsc: "" };
+const COMPANY_EMPTY = { name: "", address: "", phone: "", email: "", gst: "", bankName: "", accountNo: "", ifsc: "", logoUrl: "", signatureUrl: "", footerNote: "", showGstinOnBills: true };
 
 // ───── Company tab (existing functionality) ─────
 function CompanyTab({ shopId, userData, toast }) {
@@ -160,6 +161,8 @@ function CompanyTab({ shopId, userData, toast }) {
         {field("Account Number", "accountNo")}
         {field("IFSC Code", "ifsc")}
       </div>
+      <BrandingSection company={company} setCompany={setCompany} shopId={shopId} userData={userData} toast={toast} />
+
       <PinLockToggleSection shopId={shopId} userData={userData} toast={toast} />
 
       <button onClick={save} disabled={saving} className="btn btn-primary mt-6">
@@ -466,6 +469,75 @@ function PinLockToggleSection({ shopId, userData, toast }) {
           {busy ? "…" : enabled ? "Enabled — click to disable" : "Disabled — click to enable"}
         </button>
       </div>
+    </div>
+  );
+}
+
+
+function BrandingSection({ company, setCompany, shopId, userData, toast }) {
+  const [busy, setBusy] = useState({ logo: false, sig: false });
+  const upload = async (kind, file) => {
+    if (!file) return;
+    if (!shopId) { toast("Shop not loaded yet", "error"); return; }
+    setBusy((b) => ({ ...b, [kind]: true }));
+    try {
+      const { url } = await uploadShopFile({ shopId, kind: "branding", entityId: kind, file });
+      const field = kind === "logo" ? "logoUrl" : "signatureUrl";
+      setCompany((c) => ({ ...c, [field]: url }));
+      toast(`${kind === "logo" ? "Logo" : "Signature"} uploaded`, "success");
+    } catch (err) { toast("Upload failed: " + err.message, "error"); }
+    finally { setBusy((b) => ({ ...b, [kind]: false })); }
+  };
+  const clearImg = (field) => setCompany((c) => ({ ...c, [field]: "" }));
+  return (
+    <div className="card p-5 mt-4" style={{ background: "#FFFDFA", borderColor: "#E0C97F" }}>
+      <h3 style={{ marginTop: 0, fontSize: 14, fontWeight: 700, color: "#5A3E00" }}>🖼 Print &amp; Branding</h3>
+      <p style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+        Used on bills, receipts, and tag prints. Stored in Firebase Storage; URL on the shop document.
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 12 }}>
+        <div>
+          <label className="label">Shop logo</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {company?.logoUrl
+              ? <img src={company.logoUrl} alt="" style={{ width: 90, height: 90, objectFit: "contain", borderRadius: 8, border: "1px solid #eee", background: "#fff" }} />
+              : <div style={{ width: 90, height: 90, background: "#f5f5f5", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#aaa", border: "1px dashed #ddd" }}>💎</div>}
+            <div>
+              <label style={{ display: "inline-block", padding: "6px 12px", fontSize: 12, fontWeight: 600, background: "#1a1a2e", color: "#fff", borderRadius: 6, cursor: busy.logo ? "wait" : "pointer" }}>
+                {busy.logo ? "Uploading…" : (company?.logoUrl ? "Replace" : "Upload")}
+                <input type="file" accept="image/*" onChange={(e) => upload("logo", e.target.files?.[0])} style={{ display: "none" }} disabled={busy.logo} />
+              </label>
+              {company?.logoUrl && <button onClick={() => clearImg("logoUrl")} style={{ marginLeft: 6, padding: "6px 10px", fontSize: 11, background: "#FFEBEE", color: "#C62828", border: "none", borderRadius: 6, cursor: "pointer" }}>Remove</button>}
+            </div>
+          </div>
+        </div>
+        <div>
+          <label className="label">Authorised signature</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {company?.signatureUrl
+              ? <img src={company.signatureUrl} alt="" style={{ width: 140, height: 60, objectFit: "contain", borderRadius: 6, border: "1px solid #eee", background: "#fff" }} />
+              : <div style={{ width: 140, height: 60, background: "#f5f5f5", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#aaa", border: "1px dashed #ddd" }}>(no signature)</div>}
+            <div>
+              <label style={{ display: "inline-block", padding: "6px 12px", fontSize: 12, fontWeight: 600, background: "#1a1a2e", color: "#fff", borderRadius: 6, cursor: busy.sig ? "wait" : "pointer" }}>
+                {busy.sig ? "Uploading…" : (company?.signatureUrl ? "Replace" : "Upload")}
+                <input type="file" accept="image/*" onChange={(e) => upload("sig", e.target.files?.[0])} style={{ display: "none" }} disabled={busy.sig} />
+              </label>
+              {company?.signatureUrl && <button onClick={() => clearImg("signatureUrl")} style={{ marginLeft: 6, padding: "6px 10px", fontSize: 11, background: "#FFEBEE", color: "#C62828", border: "none", borderRadius: 6, cursor: "pointer" }}>Remove</button>}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ marginTop: 14 }}>
+        <label className="label">Footer note (terms / thank you)</label>
+        <textarea rows={3} value={company?.footerNote || ""}
+          onChange={(e) => setCompany((c) => ({ ...c, footerNote: e.target.value }))}
+          placeholder="e.g. Goods once sold will not be taken back. Thank you!" className="input" style={{ resize: "vertical" }} />
+      </div>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 13 }}>
+        <input type="checkbox" checked={company?.showGstinOnBills !== false}
+          onChange={(e) => setCompany((c) => ({ ...c, showGstinOnBills: e.target.checked }))} />
+        <span>Show GSTIN on bills and receipts</span>
+      </label>
     </div>
   );
 }
