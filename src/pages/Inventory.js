@@ -23,6 +23,8 @@ import useShortcut from "../hooks/useShortcut";
 import useAutoFocus from "../hooks/useAutoFocus";
 import QRImage from "../components/QRImage";
 import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../lib/tagFormats";
+import TagCanvas from "../components/barcode/TagCanvas";
+import { pickDefaultBarcode } from "../lib/barcodeTemplate";
 import { SkeletonTable } from "../components/ui/Skeleton";
 import { assertShopId } from "../lib/utils";
 import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../lib/constants";
@@ -461,7 +463,7 @@ export default function Inventory() {
 
       {/* Print sheet modal */}
       {printOpen && (
-        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
+        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={barcodeTemplates} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
       )}
 
       {/* Add/Edit form */}
@@ -696,10 +698,13 @@ function TagBody({ p, fmt }) {
   );
 }
 
-function PrintTags({ items, onClose, shopConfig }) {
+function PrintTags({ items, onClose, shopConfig, barcodeTemplates = [], shopData }) {
   const defaultFormatId = shopConfig?.defaultTagFormat || "medium_50x25";
   const [fmtId, setFmtId] = useState(defaultFormatId);
   const fmt = getFormat(fmtId);
+  const defaultBarcodeTpl = pickDefaultBarcode(barcodeTemplates);
+  const [barcodeTplId, setBarcodeTplId] = useState(defaultBarcodeTpl?.id || "");
+  const barcodeTpl = barcodeTemplates.find((t) => t.id === barcodeTplId) || null;
   const print = () => window.print();
   return (
     <div style={{
@@ -709,14 +714,23 @@ function PrintTags({ items, onClose, shopConfig }) {
     }}>
       <div style={{ background: "#fff", borderRadius: 12, maxWidth: 800, width: "100%" }}>
         <div className="no-print" style={{ display: "flex", justifyContent: "space-between", padding: "12px 18px", borderBottom: "1px solid #eee" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <strong>Print Tags ({items.length})</strong>
-            <select value={fmtId} onChange={(e) => setFmtId(e.target.value)}
+            <select value={fmtId} onChange={(e) => { setFmtId(e.target.value); setBarcodeTplId(""); }}
               style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }}>
               {TAG_FORMATS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
             </select>
+            {barcodeTemplates && barcodeTemplates.length > 0 && (
+              <select value={barcodeTplId} onChange={(e) => setBarcodeTplId(e.target.value)}
+                style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }}>
+                <option value="">— Use designer template —</option>
+                {barcodeTemplates.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}{t.isDefault ? " (default)" : ""}</option>
+                ))}
+              </select>
+            )}
             <span style={{ fontSize: 11, color: "#888" }}>
-              Fields: {fmt.fields.map((f) => FIELD_LABELS[f] || f).join(" · ")}
+              {barcodeTpl ? `${barcodeTpl?.dimensions?.widthMm || 0}×${barcodeTpl?.dimensions?.heightMm || 0} mm` : `Fields: ${fmt.fields.map((f) => FIELD_LABELS[f] || f).join(" · ")}`}
             </span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -725,7 +739,9 @@ function PrintTags({ items, onClose, shopConfig }) {
           </div>
         </div>
         <div id="printArea" ref={ref} style={{ padding: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {items.map((p) => <TagBody key={p.id} p={p} fmt={fmt} />)}
+          {items.map((p) => barcodeTpl
+            ? <TagCanvas key={p.id} template={barcodeTpl} product={p} shop={shopData} zoom={1} />
+            : <TagBody key={p.id} p={p} fmt={fmt} />)}
         </div>
         <style>{`
           @media print {

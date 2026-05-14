@@ -10,7 +10,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Package, ReceiptText, Wallet,
   Target, Wrench, BarChart3, TrendingUp, Settings, Crown, LogOut,
-  Hammer, Coins, BookOpenCheck, History, Menu, X, ClipboardList, Printer, FileText,
+  Hammer, Coins, BookOpenCheck, History, Menu, X, ClipboardList, Printer, FileText, QrCode,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -31,6 +31,7 @@ const MENU = [
   { Icon: History,         label: "Activity Log",      path: "/activity" },
   { Icon: TrendingUp,      label: "Gold/Silver Rates", path: "/rates" },
   { Icon: Printer,         label: "Print Templates",   path: "/print-templates" },
+  { Icon: QrCode,          label: "Barcode Designer",  path: "/barcode-designer" },
   { Icon: Settings,        label: "Settings",          path: "/settings" },
 ];
 
@@ -59,6 +60,7 @@ export default function Sidebar() {
     "/bullion": "bullion", "/accounting": "accounting",
     "/activity": "activity", "/rates": "rates",
     "/print-templates": "settings",
+    "/barcode-designer": "settings",
     "/settings": "settings",
   })[path];
 
