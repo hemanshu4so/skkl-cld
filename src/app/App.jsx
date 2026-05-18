@@ -6,39 +6,39 @@ import ErrorBoundary from "../components/ErrorBoundary";
 
 // 🔹 Shop App
 import MainLayout from "../layout/MainLayout";
-import Dashboard from "./pages/Dashboard";
-import Customers from "./pages/Customers";
-import Inventory from "./pages/Inventory";
-import Billing from "./pages/Billing";
-import Schemes from "./pages/Schemes";
-import Repairs from "./pages/repairs";
-import Purchases from "./pages/purchases";
-import Reports from "./pages/reports";
-import RateManager from "./pages/RateManager";
-import ShopSettings from "./pages/ShopSettings";
-import Karigar from "./pages/Karigar";
-import Bullion from "./pages/Bullion";
-import Accounting from "./pages/Accounting";
-import ActivityLog from "./pages/ActivityLog";
-import Orders from "./pages/Orders";
-import PrintTemplates from "./pages/PrintTemplates";
-import Vouchers from "./pages/Vouchers";
-import BarcodeDesigner from "./pages/BarcodeDesigner";
+import Dashboard from "../pages/Dashboard";
+import Customers from "../pages/Customers";
+import Inventory from "../pages/Inventory";
+import Billing from "../pages/Billing";
+import Schemes from "../pages/Schemes";
+import Repairs from "../pages/repairs";
+import Purchases from "../pages/purchases";
+import Reports from "../pages/reports";
+import RateManager from "../pages/RateManager";
+import ShopSettings from "../pages/ShopSettings";
+import Karigar from "../pages/Karigar";
+import Bullion from "../pages/Bullion";
+import Accounting from "../pages/Accounting";
+import ActivityLog from "../pages/ActivityLog";
+import Orders from "../pages/Orders";
+import PrintTemplates from "../pages/PrintTemplates";
+import Vouchers from "../pages/Vouchers";
+import BarcodeDesigner from "../pages/BarcodeDesigner";
 
 // 🔹 Auth + recovery
-import Login from "./pages/Login";
-import Renew from "./pages/Renew";
-import AccountUnlinked from "./pages/AccountUnlinked";
+import Login from "../pages/Login";
+import Renew from "../pages/Renew";
+import AccountUnlinked from "../pages/AccountUnlinked";
 
 // 🔹 Super Admin
-import SuperAdminLayout from "./superadmin/SuperAdminLayout";
-import SuperAdminDashboard from "./superadmin/SuperAdminDashboard";
-import CreateShop from "./superadmin/CreateShop";
-import ShopsList from "./superadmin/ShopsList";
-import ShopDetails from "./superadmin/ShopDetails";
-import EditShop from "./superadmin/EditShop";
-import Plans from "./superadmin/Plans";
-import Payments from "./superadmin/Payments";
+import SuperAdminLayout from "../superadmin/SuperAdminLayout";
+import SuperAdminDashboard from "../superadmin/SuperAdminDashboard";
+import CreateShop from "../superadmin/CreateShop";
+import ShopsList from "../superadmin/ShopsList";
+import ShopDetails from "../superadmin/ShopDetails";
+import EditShop from "../superadmin/EditShop";
+import Plans from "../superadmin/Plans";
+import Payments from "../superadmin/Payments";
 
 // ─── Centralized loading splash ───────────────────────────────────────
 function FullPageLoader({ label = "Loading your shop…" }) {
