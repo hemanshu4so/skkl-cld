@@ -18,7 +18,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { onSnapshot, doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { auth, db } from "../../firebase";
 
 // Possible error codes when an account is signed-in but unusable for the shop app:
 //   "NO_USER_DOC"   — there is no /users/{uid} doc (and not a superadmin)
