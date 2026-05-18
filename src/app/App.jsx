@@ -5,7 +5,7 @@ import { ToastProvider } from "../hooks/useToast";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 // 🔹 Shop App
-import MainLayout from "./layout/MainLayout";
+import MainLayout from "../layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
