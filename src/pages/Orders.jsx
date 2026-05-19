@@ -1,14 +1,14 @@
 // src/pages/Orders.jsx — Phase 4 Orders module
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import { collection, addDoc, deleteDoc, onSnapshot, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { assertShopId } from "../lib/utils";
-import { formatINR } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
-import { uploadShopFile } from "../lib/upload";
-import { openWhatsApp } from "../services/whatsapp";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { assertShopId } from "../../../lib/utils";
+import { formatINR } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
+import { uploadShopFile } from "../../../lib/upload";
+import { openWhatsApp } from "../../../services/whatsapp";
 
 const STATUS = [
   { value: "draft",       label: "Draft",        color: "#9E9E9E" },
