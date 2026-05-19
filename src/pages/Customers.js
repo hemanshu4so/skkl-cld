@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
   doc, query, where, updateDoc, serverTimestamp
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { useDebounced } from "../hooks/useDebounced";
-import { recordCustomerTxn, computeCustomerBalance } from "../services/customerLedger";
-import useShortcut from "../hooks/useShortcut";
-import useAutoFocus from "../hooks/useAutoFocus";
-import { SkeletonTable } from "../components/ui/Skeleton";
-import { whatsappActions } from "../services/whatsapp";
-import { assertShopId } from "../lib/utils";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { useDebounced } from "../../../hooks/useDebounced";
+import { recordCustomerTxn, computeCustomerBalance } from "../../../services/customerLedger";
+import useShortcut from "../../../hooks/useShortcut";
+import useAutoFocus from "../../../hooks/useAutoFocus";
+import { SkeletonTable } from "../../../components/ui/Skeleton";
+import { whatsappActions } from "../../../services/whatsapp";
+import { assertShopId } from "../../../lib/utils";
 
 const emptyForm = {
   name: "", phone: "", email: "", address: "",
