@@ -7,17 +7,17 @@
 //   - Activity log on every action
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, onSnapshot, query, where,
   doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { whatsappActions } from "../services/whatsapp";
-import { assertShopId } from "../lib/utils";
-import { formatINR, formatDate } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { whatsappActions } from "../../../services/whatsapp";
+import { assertShopId } from "../../../lib/utils";
+import { formatINR, formatDate } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
 
 const monthOfDateString = (s) => (s || "").slice(0, 7); // YYYY-MM
 const currentMonth = () => new Date().toISOString().slice(0, 7);
