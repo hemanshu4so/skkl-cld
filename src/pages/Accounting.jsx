@@ -7,16 +7,16 @@
 //   4. P&L Snapshot      — rollup from /sales /purchases /expenses for date range
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, serverTimestamp, writeBatch,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { assertShopId, downloadCSV, startOfDay, endOfDay } from "../lib/utils";
-import { formatINR, DEFAULT_CHART_OF_ACCOUNTS, EXPENSE_CATEGORIES } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { assertShopId, downloadCSV, startOfDay, endOfDay } from "../../../lib/utils";
+import { formatINR, DEFAULT_CHART_OF_ACCOUNTS, EXPENSE_CATEGORIES } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
