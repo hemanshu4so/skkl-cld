@@ -23,7 +23,7 @@ import useShortcut from "../hooks/useShortcut";
 import useAutoFocus from "../hooks/useAutoFocus";
 import QRImage from "../components/QRImage";
 import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../lib/tagFormats";
-import TagCanvas from "../modules/barcode/components/TagCanvas";
+import TagCanvas from "../components/barcode/TagCanvas";
 import { pickDefaultBarcode } from "../lib/barcodeTemplate";
 import { SkeletonTable } from "../components/ui/Skeleton";
 import { assertShopId } from "../lib/utils";
