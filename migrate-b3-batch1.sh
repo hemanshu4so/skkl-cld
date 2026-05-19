@@ -239,8 +239,9 @@ migrate_module() {
   fi
 
   # Component files
-  mapfile -t COMPS < <(discover_component_files "$SLUG" "$NAME")
-  for f in "${COMPS[@]}"; do
+  COMPS=""
+COMPS="$(discover_component_files "$SLUG" "$NAME" || true)"
+  for f in $COMPS; do
     [[ -z "$f" ]] && continue
     local rel="${f#src/components/}"
     rel="${rel#${SLUG}/}"; rel="${rel#${NAME}/}"
