@@ -7,7 +7,6 @@ import { assertShopId } from "../lib/utils";
 import { safeNumber } from "../lib/safe";
 import { logActivity } from "../lib/activityLog";
 import { PRESET_TEMPLATES, ELEMENT_TYPES, FIELD_KEYS, makeElement, newTemplate, pickDefaultBarcode } from "../lib/barcodeTemplate";
-import TagCanvas from "../components/barcode/TagCanvas";
 import SafePage from "../components/SafePage";
 
 const SAMPLE = { id:"sample123", name:"Gold Chain 22K", sku:"SKKL-G-XYZ123", barcode:"SKKL-G-XYZ123", huid:"ABC123", category:"Gold", karat:"22K", weight:12.5, netWeight:12.0, stoneWeight:0.4, stoneCount:4, price:81250, mrp:89500 };
@@ -164,7 +163,6 @@ function Inner(){
               </div>
             </div>
             <div id="printArea" style={{display:"flex",justifyContent:"center",padding:20,background:"#fff",borderRadius:6,overflowX:"auto"}}>
-              <TagCanvas template={draft} product={SAMPLE} shop={shopData} selectedId={selectedId} onSelect={setSelectedId} showSafeArea showFeatures zoom={zoom}/>
             </div>
             <style>{`@media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; } }`}</style>
             <div style={{display:"flex",justifyContent:"space-between",marginTop:10,gap:8,flexWrap:"wrap"}}>
