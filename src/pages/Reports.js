@@ -10,12 +10,12 @@
 // Every report has a "📥 CSV" button that exports via lib/utils.downloadCSV.
 
 import { useState, useEffect, useMemo } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { formatINR, formatDate, HSN_CODES } from "../lib/constants";
-import { downloadCSV, startOfDay, endOfDay } from "../lib/utils";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { formatINR, formatDate, HSN_CODES } from "../../../lib/constants";
+import { downloadCSV, startOfDay, endOfDay } from "../../../lib/utils";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (n) => {
