@@ -9,13 +9,13 @@
 // Append-only — no edit/delete from the UI.
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useDebounced } from "../hooks/useDebounced";
-import { formatDate } from "../lib/constants";
-import { timeAgo } from "../lib/utils";
-import { SkeletonTable } from "../components/ui/Skeleton";
+import { useAuth } from "../../../context/AuthContext";
+import { useDebounced } from "../../../hooks/useDebounced";
+import { formatDate } from "../../../lib/constants";
+import { timeAgo } from "../../../lib/utils";
+import { SkeletonTable } from "../../../components/ui/Skeleton";
 
 const PAGE_SIZE = 50;
 
