@@ -23,7 +23,6 @@ import useShortcut from "../hooks/useShortcut";
 import useAutoFocus from "../hooks/useAutoFocus";
 import QRImage from "../components/QRImage";
 import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../lib/tagFormats";
-import TagCanvas from "../components/barcode/TagCanvas";
 import { pickDefaultBarcode } from "../lib/barcodeTemplate";
 import { SkeletonTable } from "../components/ui/Skeleton";
 import { assertShopId } from "../lib/utils";
@@ -463,7 +462,7 @@ export default function Inventory() {
 
       {/* Print sheet modal */}
       {printOpen && (
-        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={barcodeTemplates} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
+        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={[]}} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
       )}
 
       {/* Add/Edit form */}
@@ -740,7 +739,6 @@ function PrintTags({ items, onClose, shopConfig, barcodeTemplates = [], shopData
         </div>
         <div id="printArea" ref={ref} style={{ padding: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
           {items.map((p) => barcodeTpl
-            ? <TagCanvas key={p.id} template={barcodeTpl} product={p} shop={shopData} zoom={1} />
             : <TagBody key={p.id} p={p} fmt={fmt} />)}
         </div>
         <style>{`
