@@ -462,7 +462,7 @@ export default function Inventory() {
 
       {/* Print sheet modal */}
       {printOpen && (
-        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={[]}} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
+        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={[]} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
       )}
 
       {/* Add/Edit form */}
@@ -738,8 +738,9 @@ function PrintTags({ items, onClose, shopConfig, barcodeTemplates = [], shopData
           </div>
         </div>
         <div id="printArea" ref={ref} style={{ padding: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {items.map((p) => barcodeTpl
-            : <TagBody key={p.id} p={p} fmt={fmt} />)}
+         {items.map((p) => (
+  <TagBody key={p.id} p={p} fmt={fmt} />
+))}
         </div>
         <style>{`
           @media print {
