@@ -13,17 +13,17 @@
 // Activity log on every create/update/status_change.
 
 import { useState, useEffect, useMemo } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc, query, where,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { assertShopId } from "../lib/utils";
-import { REPAIR_STATUS, REPAIR_STATUS_FLOW } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
-import { uploadShopFile } from "../lib/upload";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { assertShopId } from "../../../lib/utils";
+import { REPAIR_STATUS, REPAIR_STATUS_FLOW } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
+import { uploadShopFile } from "../../../lib/upload";
 
 const emptyForm = {
   customerId: "", customerName: "", customerPhone: "",
