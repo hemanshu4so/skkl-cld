@@ -8,18 +8,18 @@
 //   3. Ledger   — per-vendor view: GRNs (debit), payments (credit), balance.
 
 import { useState, useEffect, useMemo } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, updateDoc, serverTimestamp, runTransaction,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { CATEGORIES, KARATS, ITEM_TYPES, VENDOR_TYPES, formatINR, formatDate } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
-import useShortcut from "../hooks/useShortcut";
-import useAutoFocus from "../hooks/useAutoFocus";
-import { assertShopId } from "../lib/utils";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { CATEGORIES, KARATS, ITEM_TYPES, VENDOR_TYPES, formatINR, formatDate } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
+import useShortcut from "../../../hooks/useShortcut";
+import useAutoFocus from "../../../hooks/useAutoFocus";
+import { assertShopId } from "../../../lib/utils";
 
 const emptyVendor = {
   name: "", type: "manufacturer", phone: "", email: "",
