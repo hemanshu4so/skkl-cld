@@ -11,16 +11,16 @@
 //   /bullionTransactions    appended entries; type ∈ BULLION_TXN_TYPES
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { assertShopId } from "../lib/utils";
-import { formatINR, formatDate } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { assertShopId } from "../../../lib/utils";
+import { formatINR, formatDate } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
 
 const PURITY = { "24K": 0.999, "22K": 0.916, "20K": 0.833, "18K": 0.750, "14K": 0.583, "92.5": 0.925, "Sterling": 0.925, "80": 0.8, "N/A": 1 };
 const fine = (weight, karat) => Math.round((Number(weight) || 0) * (PURITY[karat] ?? 1) * 1000) / 1000;
