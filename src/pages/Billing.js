@@ -9,19 +9,19 @@
 //   - Activity log on save / hold / recall
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, serverTimestamp, runTransaction} from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { whatsappActions } from "../services/whatsapp";
-import useShortcut from "../hooks/useShortcut";
-import PrintRenderer from "../components/PrintRenderer";
-import { pickDefault } from "../lib/printTemplate";
-import { assertShopId } from "../lib/utils";
-import { logActivity } from "../lib/activityLog";
-import { EXCHANGE_TYPES, SPLIT_MODES } from "../lib/constants";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { whatsappActions } from "../../../services/whatsapp";
+import useShortcut from "../../../hooks/useShortcut";
+import PrintRenderer from "../../../components/PrintRenderer";
+import { pickDefault } from "../../../lib/printTemplate";
+import { assertShopId } from "../../../lib/utils";
+import { logActivity } from "../../../lib/activityLog";
+import { EXCHANGE_TYPES, SPLIT_MODES } from "../../../lib/constants";
 
 // ───── Pricing ─────
 function calcLine({ category, weight, karat, makingType, makingCharge, qty, customPrice, wastagePct, hallmarkCharge, stoneValue, lineDiscount, lineDiscountType }, rates) {
