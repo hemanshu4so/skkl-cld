@@ -21,7 +21,7 @@ import Bullion from "../pages/Bullion";
 import Accounting from "../pages/Accounting";
 import ActivityLog from "../pages/ActivityLog";
 import Orders from "../pages/Orders";
-import PrintTemplates from "../pages/PrintTemplates";
+import PrintTemplates from "../pages/PrintDesigner";
 import Vouchers from "../pages/Vouchers";
 import BarcodeDesigner from "../pages/BarcodeDesigner";
 
