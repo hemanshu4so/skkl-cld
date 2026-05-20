@@ -1,5 +1,5 @@
 // src/components/PrintRenderer.jsx
-import QRImage from "./QRImage";
+import QRImage from "../../../components/QRImage";
 const formatINR = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const fmtDate = (ts) => { if (!ts) return ""; const d = ts?.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString("en-IN"); };
 
