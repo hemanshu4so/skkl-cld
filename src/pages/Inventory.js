@@ -11,25 +11,25 @@
 //   - Activity log on add / edit / delete
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../firebase";
+import { db } from "../../../firebase";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
   doc, query, where, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../hooks/useToast";
-import { useDebounced } from "../hooks/useDebounced";
-import useShortcut from "../hooks/useShortcut";
-import useAutoFocus from "../hooks/useAutoFocus";
-import QRImage from "../components/QRImage";
-import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../lib/tagFormats";
-import { pickDefaultBarcode } from "../lib/barcodeTemplate";
-import { SkeletonTable } from "../components/ui/Skeleton";
-import { assertShopId } from "../lib/utils";
-import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../lib/constants";
-import { logActivity } from "../lib/activityLog";
-import { uploadShopFile } from "../lib/upload";
-import { parseCSV } from "../lib/csv";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
+import { useDebounced } from "../../../hooks/useDebounced";
+import useShortcut from "../../../hooks/useShortcut";
+import useAutoFocus from "../../../hooks/useAutoFocus";
+import QRImage from "../../../components/QRImage";
+import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../../../lib/tagFormats";
+import { pickDefaultBarcode } from "../../../lib/barcodeTemplate";
+import { SkeletonTable } from "../../../components/ui/Skeleton";
+import { assertShopId } from "../../../lib/utils";
+import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../../../lib/constants";
+import { logActivity } from "../../../lib/activityLog";
+import { uploadShopFile } from "../../../lib/upload";
+import { parseCSV } from "../../../lib/csv";
 
 const emptyForm = {
   name: "", itemType: "Ring", category: "Gold",
