@@ -13,12 +13,12 @@
 // Activity log on every create/update/status_change.
 
 import { useState, useEffect, useMemo } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import {
   collection, addDoc, onSnapshot, deleteDoc, query, where,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { assertShopId } from "../../../lib/utils";
 import { REPAIR_STATUS, REPAIR_STATUS_FLOW } from "../../../lib/constants";
