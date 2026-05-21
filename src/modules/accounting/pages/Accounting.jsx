@@ -7,12 +7,12 @@
 //   4. P&L Snapshot      — rollup from /sales /purchases /expenses for date range
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, serverTimestamp, writeBatch,
 } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { assertShopId, downloadCSV, startOfDay, endOfDay } from "../../../lib/utils";
 import { formatINR, DEFAULT_CHART_OF_ACCOUNTS, EXPENSE_CATEGORIES } from "../../../lib/constants";
