@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { doc, setDoc, serverTimestamp, collection, query, where, orderBy, limit, onSnapshot, addDoc } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../hooks/useToast";
 
 export default function RateManager() {
