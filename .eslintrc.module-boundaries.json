@@ -1,0 +1,18 @@
+{
+  "plugins": ["import"],
+  "rules": {
+    "import/no-restricted-paths": ["error", {
+      "zones": [
+        { "target": "./src/modules", "from": "./src/modules",
+          "except": ["./index.js", "./index.jsx", "./routes.jsx"],
+          "message": "Cross-module imports must go through the module's index.js, or via @shared/@firebase/@config." },
+        { "target": "./src/shared",   "from": "./src/modules",
+          "message": "shared/ must not depend on modules/." },
+        { "target": "./src/firebase", "from": "./src/modules",
+          "message": "firebase/ must not depend on modules/." },
+        { "target": "./src/config",   "from": "./src/modules",
+          "message": "config/ must not depend on modules/." }
+      ]
+    }]
+  }
+}
