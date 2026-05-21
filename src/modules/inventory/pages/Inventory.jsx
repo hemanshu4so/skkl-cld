@@ -462,7 +462,7 @@ export default function Inventory() {
 
       {/* Print sheet modal */}
       {printOpen && (
-        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={[]} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
+        <PrintTags items={printSelected} shopConfig={shopData?.tagConfig} barcodeTemplates={shopData?.barcodeTemplates || []} shopData={shopData} onClose={() => { setPrintOpen(false); setPrintSet(new Set()); }} />
       )}
 
       {/* Add/Edit form */}
@@ -698,6 +698,8 @@ function TagBody({ p, fmt }) {
 }
 
 function PrintTags({ items, onClose, shopConfig, barcodeTemplates = [], shopData }) {
+  const ref = useRef(null);
+
   const defaultFormatId = shopConfig?.defaultTagFormat || "medium_50x25";
   const [fmtId, setFmtId] = useState(defaultFormatId);
   const fmt = getFormat(fmtId);

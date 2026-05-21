@@ -1,3 +1,4 @@
+import React, { useRef } from "react";
 import QRImage from "../../../components/QRImage";
 import { SCALE, resolveField } from "../lib/barcodeTemplate";
 import { code128SVG } from "../lib/code128";
@@ -38,6 +39,7 @@ function Box({ el, product, shop, selected, onClick }) {
 }
 
 export default function TagCanvas({ template, product, shop, selectedId, onSelect, showSafeArea=false, showFeatures=false, zoom=1 }){
+  const ref = useRef(null);
   if(!template) return null;
   const wMm=template?.dimensions?.widthMm||50, hMm=template?.dimensions?.heightMm||25;
   const f=template.features||{}, pr=template.printable||{x:0,y:0,w:wMm,h:hMm};
