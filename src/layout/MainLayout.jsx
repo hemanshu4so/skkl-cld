@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import LockScreen from "./LockScreen";
 import NotificationBell from "./NotificationBell";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 
 // Auto-lock after this much idle time. 60s was too aggressive; 5 min is the
 // industry-standard for in-store POS.
