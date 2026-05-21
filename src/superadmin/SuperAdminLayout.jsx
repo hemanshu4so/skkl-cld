@@ -1,8 +1,8 @@
 // src/superadmin/SuperAdminLayout.js
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
-import { useAuth } from "../context/AuthContext";
+import { auth } from "@fb/client";
+import { useAuth } from "@app/providers/AuthProvider";
 
 const NAV = [
   { path: "/sa",              label: "📊 Dashboard"  },
