@@ -12,7 +12,7 @@ import {
   Target, Wrench, BarChart3, TrendingUp, Settings, Crown, LogOut,
   Hammer, Coins, BookOpenCheck, History, Menu, X, ClipboardList, Printer, FileText, QrCode,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 
 const MENU = [
   { Icon: LayoutDashboard, label: "Dashboard",         path: "/" },
