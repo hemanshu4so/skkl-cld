@@ -16,7 +16,7 @@
 
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 
 export async function pushNotification({ shopId, uid = null, title, body, kind = "info", link = null }) {
   if (!shopId || !title) return;
