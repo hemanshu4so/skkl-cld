@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import { collection, addDoc, deleteDoc, onSnapshot, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { assertShopId } from "../../../lib/utils";
-import { safeNumber } from "../../../lib/safe";
+import { safeNumber } from "@shared/safe";
 import { logActivity } from "../../../lib/activityLog";
 import { PRESET_TEMPLATES, ELEMENT_TYPES, FIELD_KEYS, makeElement, newTemplate, pickDefaultBarcode } from "../../../lib/barcodeTemplate";
-import SafePage from "../../../components/SafePage";
+import SafePage from "@shared/safe/SafePage";
 
 const SAMPLE = { id:"sample123", name:"Gold Chain 22K", sku:"SKKL-G-XYZ123", barcode:"SKKL-G-XYZ123", huid:"ABC123", category:"Gold", karat:"22K", weight:12.5, netWeight:12.0, stoneWeight:0.4, stoneCount:4, price:81250, mrp:89500 };
 export default function BarcodeDesigner(){ return <SafePage title="Barcode Designer"><Inner/></SafePage>; }
