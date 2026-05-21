@@ -1,6 +1,6 @@
 // src/superadmin/SuperAdminDashboard.js — real analytics
 import { useEffect, useMemo, useState } from "react";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { collection, onSnapshot } from "firebase/firestore";
 
 export default function SuperAdminDashboard() {
