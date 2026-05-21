@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, query, orderBy } from "firebase/firestore";
-import { auth, db } from "../firebase";
-import { useAuth } from "../context/AuthContext";
+import { auth, db } from "@fb/client";
+import { useAuth } from "@app/providers/AuthProvider";
 
 function fmtDate(ts) {
   if (!ts) return "—";
