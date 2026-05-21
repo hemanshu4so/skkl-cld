@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 
 const PURITY_FACTORS = { "24K": 0.999, "22K": 0.916, "20K": 0.833, "18K": 0.750, "14K": 0.583, "9K": 0.375 };
 
