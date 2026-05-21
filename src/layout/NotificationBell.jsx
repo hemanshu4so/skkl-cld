@@ -7,8 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { db } from "../firebase";
-import { useAuth } from "../context/AuthContext";
+import { db } from "@fb/client";
+import { useAuth } from "@app/providers/AuthProvider";
 import { markRead } from "../services/notifications";
 import { timeAgo } from "../lib/utils";
 
