@@ -1,6 +1,6 @@
 // src/superadmin/Payments.js
 import { useState } from "react";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "../hooks/useToast";
 
