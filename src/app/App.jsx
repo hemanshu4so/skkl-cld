@@ -11,7 +11,7 @@ import Customers from "@modules/customers/pages/Customers";
 import Inventory from "@modules/inventory/pages/Inventory";
 import Billing from "@modules/billing/pages/Billing";
 import Schemes from "@modules/schemes/pages/Schemes";
-import Repairs from "../pages/repairs";
+import Repairs from "@modules/repairs/pages/Repairs";
 import Purchases from "../pages/purchases";
 import Reports from "../pages/reports";
 import RateManager from "../pages/RateManager";
