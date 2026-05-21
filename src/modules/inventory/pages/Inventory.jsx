@@ -11,12 +11,12 @@
 //   - Activity log on add / edit / delete
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import {
   collection, addDoc, onSnapshot, deleteDoc,
   doc, query, where, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { useDebounced } from "../../../hooks/useDebounced";
 import useShortcut from "../../../hooks/useShortcut";
