@@ -10,16 +10,16 @@
 import { useState, useEffect, useRef } from "react";
 import { initializeApp, deleteApp, getApp, getApps } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signOut as fbSignOut } from "firebase/auth";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import {
   doc, getDoc, updateDoc, setDoc, deleteDoc,
   collection, onSnapshot, query, where, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../hooks/useToast";
 import { assertShopId } from "../lib/utils";
 import { logActivity } from "../lib/activityLog";
-import { setPin, DEFAULT_PIN, hashPin, generateSalt } from "../utils/pin";
+import { setPin, DEFAULT_PIN, hashPin, generateSalt } from "@shared/pin";
 import { uploadShopFile } from "../lib/upload";
 import { exportShopJSON, downloadJSON } from "../services/backup";
 
