@@ -10,9 +10,9 @@
 // Every report has a "📥 CSV" button that exports via lib/utils.downloadCSV.
 
 import { useState, useEffect, useMemo } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { formatINR, formatDate, HSN_CODES } from "../../../lib/constants";
 import { downloadCSV, startOfDay, endOfDay } from "../../../lib/utils";
