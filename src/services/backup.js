@@ -3,7 +3,7 @@
 // the scheduled Cloud Function is set up.
 
 import { getDocs, query, where, collection } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 
 const SHOP_COLLECTIONS = [
   "products", "customers", "sales", "schemes", "schemeRedemptions",
