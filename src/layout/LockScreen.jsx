@@ -1,8 +1,8 @@
 // src/layout/LockScreen.js
 import { useState, useEffect, useCallback } from "react";
-import { auth, db } from "../firebase";
+import { auth, db } from "@fb/client";
 import { doc, getDoc } from "firebase/firestore";
-import { verifyPin } from "../utils/pin";
+import { verifyPin } from "@shared/pin";
 
 export default function LockScreen({ onUnlock }) {
   const [pin, setPin] = useState("");
