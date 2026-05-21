@@ -15,19 +15,19 @@
 // running balances update immediately.
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { assertShopId } from "../../../lib/utils";
 import { formatINR, formatDate } from "../../../lib/constants";
 import { logActivity } from "../../../lib/activityLog";
 import { recordCustomerTxn } from "../../../services/customerLedger";
-import PrintRenderer from "../../../components/PrintRenderer";
-import { pickDefault } from "../../../lib/printTemplate";
+import PrintRenderer from "@modules/printing/components/PrintRenderer";
+import { pickDefault } from "@modules/printing/lib/printTemplate";
 
 const PAY_MODES = ["cash", "upi", "bank", "cheque", "card", "credit"];
 
