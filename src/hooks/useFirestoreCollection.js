@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   collection, query, where, onSnapshot, orderBy, limit as fbLimit
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@firebase/client";
 
 /**
  * Real-time collection hook with shopId scoping.
