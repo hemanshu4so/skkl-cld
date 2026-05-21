@@ -9,7 +9,7 @@ import { useState } from "react";
 import { initializeApp, deleteApp, getApp, getApps } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signOut as fbSignOut } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { useToast } from "../hooks/useToast";
 
 // Read same config from env so the secondary app talks to the same project.
