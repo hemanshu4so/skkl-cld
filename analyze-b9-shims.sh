@@ -25,7 +25,7 @@ SKIP_SHIMS = {
     "src/pages/BarcodeDesigner.jsx",
 }
 
-EXTS = ("", ".js", ".jsx", ".ts", ".tsx", "/index.js", "/index.jsx", "/index.ts", "/index.tsx")
+EXTS = ("", ".js", ".jsx", ".ts", ".tsx", "/index.jsx", "/index.jsxx", "/index.ts", "/index.tsx")
 
 def rel(p): return os.path.relpath(p, ROOT)
 
