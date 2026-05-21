@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import { collection, addDoc, deleteDoc, onSnapshot, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { assertShopId } from "../../../lib/utils";
 import { logActivity } from "../../../lib/activityLog";
-import { BLOCK_TYPES, getDefaultTemplate, pickDefault } from "../../../lib/printTemplate";
-import PrintRenderer from "../../../components/PrintRenderer";
+import { BLOCK_TYPES, getDefaultTemplate, pickDefault } from "@modules/printing/lib/printTemplate";
+import PrintRenderer from "@modules/printing/components/PrintRenderer";
 
 const SAMPLE_BILL = {
   kind: "bill", billNo: "BILL000123",
