@@ -10,7 +10,7 @@
 // We give the user a clear message and a sign-out button.
 
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 
 const MESSAGES = {
   NO_USER_DOC: {
