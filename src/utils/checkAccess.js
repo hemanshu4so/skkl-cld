@@ -1,5 +1,5 @@
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 
 export const checkShopAccess = async (shopId) => {
   const ref = doc(db, "shops", shopId);
