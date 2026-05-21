@@ -1,2 +1,2 @@
 // Phase B-2 compat shim
-export * from './firebase/client.jsx';
+export * from './firebase/client';
