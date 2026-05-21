@@ -5,7 +5,7 @@
       "zones": [
         { "target": "./src/modules", "from": "./src/modules",
           "except": ["./index.js", "./index.jsx", "./routes.jsx"],
-          "message": "Cross-module imports must go through the module's index.js, or via @shared/@firebase/@config." },
+          "message": "Cross-module imports must go through the module's index.js, or via @shared/@fb/@config." },
         { "target": "./src/shared",   "from": "./src/modules",
           "message": "shared/ must not depend on modules/." },
         { "target": "./src/firebase", "from": "./src/modules",

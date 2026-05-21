@@ -155,7 +155,7 @@ alias_target() {
     modules/*) echo "@modules/${stripped#modules/}" ;;
     shared/*)  echo "@shared/${stripped#shared/}" ;;
     app/*)     echo "@app/${stripped#app/}" ;;
-    firebase/*)echo "@firebase/${stripped#firebase/}" ;;
+    firebase/*)echo "@fb/${stripped#firebase/}" ;;
     *) echo "./${stripped}" ;;
   esac
 }
