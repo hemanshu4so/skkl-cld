@@ -1,7 +1,7 @@
 // src/superadmin/EditShop.js
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "../hooks/useToast";
 
