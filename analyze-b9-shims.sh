@@ -62,7 +62,7 @@ ALIAS_MAP = [
     ("src/modules/",  "@modules/"),
     ("src/shared/",   "@shared/"),
     ("src/app/",      "@app/"),
-    ("src/firebase/", "@firebase/"),
+    ("src/firebase/", "@fb/"),
     ("src/config/",   "@config/"),
     ("src/assets/",   "@assets/"),
 ]

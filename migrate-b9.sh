@@ -77,7 +77,7 @@ def tgt(shim):
         if os.path.exists(cand): return cand
     return None
 AM=[("src/modules/","@modules/"),("src/shared/","@shared/"),("src/app/","@app/"),
-    ("src/firebase/","@firebase/"),("src/config/","@config/"),("src/assets/","@assets/")]
+    ("src/firebase/","@fb/"),("src/config/","@config/"),("src/assets/","@assets/")]
 def alias(ap):
     if not ap: return None
     r=rel(ap)
@@ -234,7 +234,7 @@ stage_eslint() {
       "zones": [
         { "target": "./src/modules", "from": "./src/modules",
           "except": ["./index.js", "./index.jsx", "./routes.jsx"],
-          "message": "Cross-module imports must go through the module's index.js, or via @shared/@firebase/@config." },
+          "message": "Cross-module imports must go through the module's index.js, or via @shared/@fb/@config." },
         { "target": "./src/shared",   "from": "./src/modules",
           "message": "shared/ must not depend on modules/." },
         { "target": "./src/firebase", "from": "./src/modules",
