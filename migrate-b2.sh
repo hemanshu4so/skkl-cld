@@ -83,8 +83,8 @@ export * from '@shared/pin';" \
 move_with_shim \
   "src/firebase.js" \
   "src/firebase/client.js" \
-  "// Phase B-2 compat shim. Real file lives at @firebase/client.
-export * from '@firebase/client';" \
+  "// Phase B-2 compat shim. Real file lives at @fb/client.
+export * from '@fb/client';" \
   "firebase/client"
 
 # 6. AuthContext -> AuthProvider
