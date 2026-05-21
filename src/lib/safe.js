@@ -1,2 +1,2 @@
 // Phase B-2 compat shim
-export * from '../shared/safe/index.jsx';
+export * from '../shared/safe/index';
