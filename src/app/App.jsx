@@ -1,28 +1,28 @@
 // src/App.js
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "../context/AuthContext";
+import { AuthProvider, useAuth } from "@app/providers/AuthProvider";
 import { ToastProvider } from "../hooks/useToast";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 // 🔹 Shop App
 import MainLayout from "../layout/MainLayout";
-import Dashboard from "../pages/Dashboard";
-import Customers from "../pages/Customers";
-import Inventory from "../pages/Inventory";
-import Billing from "../pages/Billing";
-import Schemes from "../pages/Schemes";
+import Dashboard from "@modules/dashboard/pages/Dashboard";
+import Customers from "@modules/customers/pages/Customers";
+import Inventory from "@modules/inventory/pages/Inventory";
+import Billing from "@modules/billing/pages/Billing";
+import Schemes from "@modules/schemes/pages/Schemes";
 import Repairs from "../pages/repairs";
 import Purchases from "../pages/purchases";
 import Reports from "../pages/reports";
 import RateManager from "../pages/RateManager";
 import ShopSettings from "../pages/ShopSettings";
-import Karigar from "../pages/Karigar";
-import Bullion from "../pages/Bullion";
-import Accounting from "../pages/Accounting";
-import ActivityLog from "../pages/ActivityLog";
-import Orders from "../pages/Orders";
-import PrintTemplates from "../pages/PrintDesigner";
-import Vouchers from "../pages/Vouchers";
+import Karigar from "@modules/karigar/pages/Karigar";
+import Bullion from "@modules/bullion/pages/Bullion";
+import Accounting from "@modules/accounting/pages/Accounting";
+import ActivityLog from "@modules/activity-log/pages/ActivityLog";
+import Orders from "@modules/orders/pages/Orders";
+import PrintTemplates from "@modules/printing/pages/PrintDesigner";
+import Vouchers from "@modules/vouchers/pages/Vouchers";
 import BarcodeDesigner from "../pages/BarcodeDesigner";
 
 // 🔹 Auth + recovery
