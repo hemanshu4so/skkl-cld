@@ -13,7 +13,7 @@
 //   }
 
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 
 export async function logActivity({
   shopId, action, entity, entityId,
