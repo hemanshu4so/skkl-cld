@@ -1,6 +1,6 @@
 // src/services/customerLedger.js
 import { addDoc, collection, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { logActivity } from "../lib/activityLog";
 
 const TYPE_DIRECTION = {
