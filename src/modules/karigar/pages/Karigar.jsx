@@ -15,12 +15,12 @@
 // Activity log on every mutation.
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { assertShopId } from "../../../lib/utils";
 import { formatINR, formatDate } from "../../../lib/constants";
