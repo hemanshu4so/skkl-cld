@@ -5,7 +5,7 @@
 // for future deletion / orphan cleanup).
 
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { storage } from "../firebase";
+import { storage } from "@fb/client";
 
 const slugify = (s) => String(s || "").replace(/[^\w.-]+/g, "_").slice(0, 80);
 
