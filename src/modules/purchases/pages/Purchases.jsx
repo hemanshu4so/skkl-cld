@@ -8,12 +8,12 @@
 //   3. Ledger   — per-vendor view: GRNs (debit), payments (credit), balance.
 
 import { useState, useEffect, useMemo } from "react";
-import { db } from "../../../firebase";
+import { db } from "@fb/client";
 import {
   collection, addDoc, deleteDoc, onSnapshot, query, where,
   doc, updateDoc, serverTimestamp, runTransaction,
 } from "firebase/firestore";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@app/providers/AuthProvider";
 import { useToast } from "../../../hooks/useToast";
 import { CATEGORIES, KARATS, ITEM_TYPES, VENDOR_TYPES, formatINR, formatDate } from "../../../lib/constants";
 import { logActivity } from "../../../lib/activityLog";
