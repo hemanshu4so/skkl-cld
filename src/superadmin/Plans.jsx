@@ -1,6 +1,6 @@
 // src/superadmin/Plans.js — full CRUD for billing plans
 import { useEffect, useState } from "react";
-import { db } from "../firebase";
+import { db } from "@fb/client";
 import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useToast } from "../hooks/useToast";
 
