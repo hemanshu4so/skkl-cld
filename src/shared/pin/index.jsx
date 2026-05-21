@@ -12,7 +12,7 @@
 //      hashed form (deleteField('pin')).
 
 import { doc, updateDoc, deleteField } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "@fb/client";
 
 function bytesToHex(buf) {
   return Array.from(new Uint8Array(buf))
