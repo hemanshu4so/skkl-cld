@@ -32,7 +32,6 @@ import { CATEGORIES, KARATS, ITEM_TYPES, MAKING_TYPES } from "../../../lib/const
 import { logActivity } from "../../../lib/activityLog";
 import { uploadShopFile } from "../../../lib/upload";
 import { parseCSV } from "../../../lib/csv";
-import { useCreateQrItem } from '@modules/inventory/integration/createQrItem';  /* QR-AUTO */
 
 const emptyForm = {
   name: "", itemType: "Ring", category: "Gold",
@@ -97,7 +96,6 @@ const sortByCreatedDesc = (arr) => [...(arr || [])].sort((a, b) => _ts(b) - _ts(
 
 export default function Inventory() {
   const { userData, shopData } = useAuth();
-  const { createQrItem } = useCreateQrItem(); /* QR-AUTO */
   const { toast } = useToast();
   const shopId = userData?.shopId;
 
@@ -283,10 +281,6 @@ export default function Inventory() {
       } else {
         data.createdAt = serverTimestamp();
         const ref = await addDoc(collection(db, "products"), data);
-      /* QR-AUTO:BEGIN add-product → QR item (additive, non-blocking) */
-      try { await createQrItem(data, { productId: ref.id, productCollection: 'products' }); }
-      catch (e) { console.error('[QR] item create failed (non-blocking):', e); }
-      /* QR-AUTO:END */
         await logActivity({
           shopId, action: "create", entity: "product", entityId: ref.id,
           uid: userData?.id, name: userData?.name, after: data,
