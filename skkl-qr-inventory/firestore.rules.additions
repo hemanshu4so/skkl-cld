@@ -1,0 +1,85 @@
+// ============================================================================
+// QR-First Inventory — append-only & multi-tenant rules
+// MERGE these match blocks into your existing firestore.rules (inside the same
+// `match /databases/{database}/documents { ... }` block). Reuse your existing
+// helpers: isSignedIn(), userShop(uid), userRole(uid), roleIn([...]), sameShop(d).
+// ============================================================================
+
+// items — current snapshot. Create/limited-update by staff; QR identity immutable.
+match /items/{itemId} {
+  allow read: if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+
+  allow create: if isSignedIn()
+    && roleIn(['admin','manager','cashier','staff'])
+    && sameShop(request.resource.data)
+    // identity is fixed at creation and must equal the doc id
+    && request.resource.data.itemId == itemId
+    && request.resource.data.qrId == itemId;
+
+  allow update: if isSignedIn()
+    && roleIn(['admin','manager','cashier','staff'])
+    && sameShop(resource.data)
+    // QR identity can NEVER change after creation
+    && request.resource.data.itemId == resource.data.itemId
+    && request.resource.data.qrId == resource.data.qrId
+    && request.resource.data.shopId == resource.data.shopId
+    && request.resource.data.createdAt == resource.data.createdAt;
+
+  allow delete: if false; // items are never hard-deleted (use status=lost/melted)
+}
+
+// Append-only history collections: create only, never update/delete.
+match /item_movements/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow create: if isSignedIn() && sameShop(request.resource.data);
+  allow update, delete: if false;
+}
+match /item_repairs/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow create: if isSignedIn() && sameShop(request.resource.data);
+  // repair status progresses via NEW append rows OR a controlled status field update;
+  // allow status-only update by admin/manager, identity immutable:
+  allow update: if isSignedIn() && roleIn(['admin','manager'])
+    && sameShop(resource.data)
+    && request.resource.data.itemId == resource.data.itemId
+    && request.resource.data.repairId == resource.data.repairId;
+  allow delete: if false;
+}
+match /tag_history/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow create: if isSignedIn() && sameShop(request.resource.data);
+  allow update, delete: if false;
+}
+match /audit_logs/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow create: if isSignedIn() && sameShop(request.resource.data);
+  allow update, delete: if false;       // audit is immutable
+}
+match /inventory_events/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow create: if isSignedIn() && sameShop(request.resource.data);
+  allow update, delete: if false;
+}
+
+// branches / counters / employees — admin/manager managed.
+match /branches/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow write:  if isSignedIn() && roleIn(['admin','manager']) && sameShop(request.resource.data);
+}
+match /counters/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  // sequence docs (type=sequence) should be written by Cloud Functions / transactions only;
+  // physical counters by admin/manager.
+  allow create, update: if isSignedIn() && roleIn(['admin','manager']) && sameShop(request.resource.data);
+  allow delete: if isSignedIn() && roleIn(['admin']) && sameShop(resource.data);
+}
+match /employees/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow write:  if isSignedIn() && roleIn(['admin','manager']) && sameShop(request.resource.data);
+}
+match /transfers/{id} {
+  allow read:   if isSignedIn() && (isSuperadmin() || sameShop(resource.data));
+  allow create: if isSignedIn() && roleIn(['admin','manager','staff']) && sameShop(request.resource.data);
+  allow update: if isSignedIn() && roleIn(['admin','manager']) && sameShop(resource.data);
+  allow delete: if false;
+}

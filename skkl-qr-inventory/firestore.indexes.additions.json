@@ -1,0 +1,29 @@
+{
+  "_comment": "MERGE these into the indexes array of firestore.indexes.json, then `firebase deploy --only firestore:indexes`. No orderBy(createdAt) composites — listings sort client-side (see BUG_HISTORY B-019/B-027).",
+  "indexes": [
+    { "collectionGroup": "items", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "status", "order": "ASCENDING" } ] },
+    { "collectionGroup": "items", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "category", "order": "ASCENDING" } ] },
+    { "collectionGroup": "items", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "counterId", "order": "ASCENDING" } ] },
+    { "collectionGroup": "item_movements", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "type", "order": "ASCENDING" } ] },
+    { "collectionGroup": "item_repairs", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "status", "order": "ASCENDING" } ] },
+    { "collectionGroup": "audit_logs", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "entityType", "order": "ASCENDING" },
+      { "fieldPath": "entityId", "order": "ASCENDING" } ] },
+    { "collectionGroup": "inventory_events", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "shopId", "order": "ASCENDING" },
+      { "fieldPath": "kind", "order": "ASCENDING" } ] }
+  ],
+  "fieldOverrides": []
+}
