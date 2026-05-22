@@ -23,13 +23,13 @@ function assertShopId(shopId, source='unknown') {
 
 // ----- collection refs (string names live in COL; add the new ones there too) -----
 const C = {
-  items: COL.items || 'items',
-  movements: COL.itemMovements || 'item_movements',
-  repairs: COL.itemRepairs || 'item_repairs',
-  tagHistory: COL.tagHistory || 'tag_history',
-  audit: COL.auditLogs || 'audit_logs',
-  events: COL.inventoryEvents || 'inventory_events',
-  counters: COL.counters || 'counters',
+  items: 'items',
+  movements: 'item_movements',
+  repairs: 'item_repairs',
+  tagHistory: 'tag_history',
+  audit: 'audit_logs',
+  events: 'inventory_events',
+  counters: 'counters',
 };
 
 // ---------------------------------------------------------------------------
