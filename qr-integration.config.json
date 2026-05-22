@@ -1,0 +1,29 @@
+{
+  "auth": {
+    "file": "src/app/providers/AuthProvider.jsx",
+    "hook": "useAuth",
+    "import": "@app/providers/AuthProvider",
+    "alias_available": true,
+    "fields_seen": [
+      "role",
+      "shop",
+      "shopId",
+      "uid",
+      "user"
+    ]
+  },
+  "firebase": {
+    "file": "src/firebase/client.jsx",
+    "import": "@firebase/client",
+    "name": "db",
+    "alias_available": true
+  },
+  "inventory": {
+    "pageFile": "src/modules/inventory/pages/Inventory.jsx",
+    "saveHandler": "handleSave",
+    "productCollection": "products",
+    "anchorLine": "await addDoc(collection(db, \"products\"), data);",
+    "payloadVar": "data"
+  },
+  "notes": []
+}
