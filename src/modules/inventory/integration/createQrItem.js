@@ -4,10 +4,10 @@
 // existing product doc. Throws are caught by the caller (non-blocking by design).
 import { useCallback } from 'react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@firebase/client';
+import { db } from '@fb/client';
 import { useQrRuntime } from './qrRuntime';
 import { buildItemDraft } from '@shared/models/item';
-import { createItemWithIdentity } from '@firebase/items';
+import { createItemWithIdentity } from '@fb/items';
 
 // Best-effort field mapping from a product payload to the QR item draft.
 // Unknown fields are ignored by buildItemDraft; tweak here if your form differs.
