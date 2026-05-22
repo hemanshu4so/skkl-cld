@@ -39,7 +39,7 @@ export function buildItemDraft(input, { shopId, uid, employeeId }) {
     wastagePct: safeNumber(input.wastagePct, 0),
 
     vendorId: safeStr(input.vendorId) || null,
-    branchId: safeStr(input.branchId) || null,
+    branchId:  safeStr(input.branchId) || null,
     counterId: safeStr(input.counterId) || null,
     location: safeStr(input.location),
 
@@ -78,7 +78,7 @@ export function itemSnapshot(item) {
     grossWeight: safeNumber(pick(item, 'grossWeight', 0)),
     netWeight: safeNumber(pick(item, 'netWeight', 0)),
     stoneWeight: safeNumber(pick(item, 'stoneWeight', 0)),
-    branchId: pick(item, 'branchId', null),
+    branchId:  pick(item, 'branchId', null),
     counterId: pick(item, 'counterId', null),
   };
 }

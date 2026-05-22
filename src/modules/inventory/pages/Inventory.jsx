@@ -217,7 +217,7 @@ export default function Inventory() {
         },
         {
           shopId,
-          uid: auth?.currentUser?.uid || "system",
+          uid: "system",
           employeeId: null,
         }
       );
