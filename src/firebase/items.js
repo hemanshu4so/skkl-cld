@@ -7,13 +7,19 @@ import {
   collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc,
   query, where, runTransaction, serverTimestamp,
 } from 'firebase/firestore';
-import { db } from '@firebase/client';
-import { assertShopId } from '@firebase/guards';
-import { COL } from '@firebase/collections';
+import { db } from '@fb/client';
 import { formatItemId, itemSequenceDocId } from '@shared/models/ids';
 import { itemSnapshot } from '@shared/models/item';
 import { buildMovement, MOVEMENT_TYPE } from '@shared/models/itemMovement';
 import { buildAudit } from '@shared/models/auditLog';
+
+
+
+function assertShopId(shopId, source='unknown') {
+  if (!shopId) {
+    throw new Error(`Missing shopId in ${source}`);
+  }
+}
 
 // ----- collection refs (string names live in COL; add the new ones there too) -----
 const C = {

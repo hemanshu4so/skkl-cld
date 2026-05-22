@@ -1,7 +1,7 @@
 // useItem(itemId) — live single item via ref-tracked snapshot (no Target ID conflicts).
 import { useEffect, useRef, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@firebase/client';
+import { db } from '@fb/client';
 
 export default function useItem(itemId) {
   const [item, setItem] = useState(null);

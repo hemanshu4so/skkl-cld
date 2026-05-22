@@ -1,6 +1,6 @@
 // useItemByQr — resolve a scanned/typed payload to an item. itemId === qrId === docId.
 import { useState, useCallback } from 'react';
-import { fetchItemByQr } from '@firebase/items';
+import { fetchItemByQr } from '@fb/items';
 import { decodeScan } from '@modules/inventory/lib/qrIdentity';
 
 export default function useItemByQr() {

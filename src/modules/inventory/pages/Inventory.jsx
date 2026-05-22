@@ -22,6 +22,7 @@ import { useDebounced } from "../../../hooks/useDebounced";
 import useShortcut from "../../../hooks/useShortcut";
 import useAutoFocus from "../../../hooks/useAutoFocus";
 import QRImage from "../../../components/QRImage";
+import QrScanInput from "../components/QrScanInput";
 import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../../../lib/tagFormats";
 import { pickDefaultBarcode } from "../../../lib/barcodeTemplate";
 import { SkeletonTable } from "../../../components/ui/Skeleton";
@@ -734,9 +735,15 @@ function PrintTags({ items, onClose, shopConfig, barcodeTemplates = [], shopData
               {barcodeTpl ? `${barcodeTpl?.dimensions?.widthMm || 0}×${barcodeTpl?.dimensions?.heightMm || 0} mm` : `Fields: ${fmt.fields.map((f) => FIELD_LABELS[f] || f).join(" · ")}`}
             </span>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={print} className="btn btn-primary">🖨️ Print</button>
-            <button onClick={onClose} className="btn btn-secondary">✕ Close</button>
+          <div style={{ display: "flex", flexDirection:"column", gap: 10, width:"100%" }}>
+            <QrScanInput
+              onScan={(code)=>console.log("QR scanned:", code)}
+            />
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={print} className="btn btn-primary">🖨️ Print</button>
+              <button onClick={onClose} className="btn btn-secondary">✕ Close</button>
+            </div>
           </div>
         </div>
         <div id="printArea" ref={ref} style={{ padding: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>

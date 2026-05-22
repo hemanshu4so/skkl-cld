@@ -2,7 +2,7 @@
 // QR = permanent identity ONLY. This module encodes/decodes the itemId STRING.
 // It deliberately stores NO jewellery data in the QR. Reuses the restored
 // pure-JS QR encoder from the barcode module.
-import { encodeQR } from '@modules/barcode/lib/qr';
+import { qrSVG } from '@modules/barcode/lib/qr';
 import { isItemId, normalizeScan } from '@shared/models/ids';
 
 /**
@@ -11,9 +11,14 @@ import { isItemId, normalizeScan } from '@shared/models/ids';
  * @returns {number[][]}   QR module matrix (1/0) for rendering by TagCanvas
  */
 export function buildItemQrMatrix(itemId) {
-  if (!isItemId(itemId)) throw new Error(`refusing to encode non-identity payload: ${itemId}`);
-  // byte mode, EC level L — identity strings are short and fixed-charset
-  return encodeQR(itemId, { mode: 'byte', ec: 'L' });
+  if (!isItemId(itemId)) {
+    throw new Error(`refusing to encode non-identity payload: ${itemId}`);
+  }
+
+  return qrSVG(itemId, {
+    size: 128,
+    margin: 2,
+  });
 }
 
 /** The exact string that gets printed under/inside the QR. Never JSON, never data. */

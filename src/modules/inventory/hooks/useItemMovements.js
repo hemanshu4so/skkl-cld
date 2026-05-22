@@ -1,7 +1,7 @@
 // useItemMovements(itemId) — append-only timeline, client-sorted by `at` desc.
 import { useEffect, useRef, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@firebase/client';
+import { db } from '@fb/client';
 import { toDate } from '@shared/safe';
 
 export default function useItemMovements(itemId) {

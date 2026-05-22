@@ -1,7 +1,7 @@
 // useItemRepairs(itemId) — append-only repair history, client-sorted.
 import { useEffect, useRef, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@firebase/client';
+import { db } from '@fb/client';
 import { toDate } from '@shared/safe';
 
 export default function useItemRepairs(itemId) {

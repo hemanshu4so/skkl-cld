@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@app/providers/AuthProvider';
 import { buildItemDraft, validateItemDraft } from '@shared/models/item';
-import { createItemWithIdentity } from '@firebase/items';
+import { createItemWithIdentity } from '@fb/items';
 
 export default function useCreateItem() {
   const { shopId, user, employeeId } = useAuth();
