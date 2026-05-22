@@ -22,6 +22,7 @@ import { useDebounced } from "../../../hooks/useDebounced";
 import useShortcut from "../../../hooks/useShortcut";
 import useAutoFocus from "../../../hooks/useAutoFocus";
 import QRImage from "../../../components/QRImage";
+import { createItemWithIdentity } from "@fb/items";
 import QrScanInput from "../components/QrScanInput";
 import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../../../lib/tagFormats";
 import { pickDefaultBarcode } from "../../../lib/barcodeTemplate";
@@ -200,6 +201,31 @@ export default function Inventory() {
     setForm((f) => ({ ...f, photos: (f.photos || []).filter((_, idx) => idx !== i) }));
 
   const handleSave = async () => {
+
+    // QR inventory create flow
+    try {
+      const created = await createItemWithIdentity(
+        {
+          name: form.name || "",
+          category: form.category || "",
+          grossWeight: Number(form.grossWeight || 0),
+          netWeight: Number(form.netWeight || 0),
+          sellingPrice: Number(form.price || 0),
+          status: "available",
+        },
+        {
+          shopId,
+          uid: auth?.currentUser?.uid || "system",
+          employeeId: null,
+        }
+      );
+
+      console.log("✅ QR ITEM CREATED:", created);
+
+    } catch (err) {
+      console.error("QR create failed:", err);
+    }
+
     if (!assertShopId(shopId, toast, "Inventory.handleSave")) return;
     if (!form.name || !form.weight) {
       toast("Product name and weight are required", "warn");
