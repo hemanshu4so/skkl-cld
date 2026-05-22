@@ -7,28 +7,23 @@ import {
   collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc,
   query, where, runTransaction, serverTimestamp,
 } from 'firebase/firestore';
-import { db } from '@fb/client';
+import { db } from '@firebase/client';
+import { assertShopId } from '@firebase/guards';
+import { COL } from '@firebase/collections';
 import { formatItemId, itemSequenceDocId } from '@shared/models/ids';
 import { itemSnapshot } from '@shared/models/item';
 import { buildMovement, MOVEMENT_TYPE } from '@shared/models/itemMovement';
 import { buildAudit } from '@shared/models/auditLog';
 
-
-function assertShopId(shopId, source='unknown') {
-  if (!shopId) {
-    throw new Error(`Missing shopId in ${source}`);
-  }
-}
-
 // ----- collection refs (string names live in COL; add the new ones there too) -----
 const C = {
-  items: 'items',
-  movements: 'item_movements',
-  repairs: 'item_repairs',
-  tagHistory: 'tag_history',
-  audit: 'audit_logs',
-  events: 'inventory_events',
-  counters: 'counters',
+  items: COL.items || 'items',
+  movements: COL.itemMovements || 'item_movements',
+  repairs: COL.itemRepairs || 'item_repairs',
+  tagHistory: COL.tagHistory || 'tag_history',
+  audit: COL.auditLogs || 'audit_logs',
+  events: COL.inventoryEvents || 'inventory_events',
+  counters: COL.counters || 'counters',
 };
 
 // ---------------------------------------------------------------------------
