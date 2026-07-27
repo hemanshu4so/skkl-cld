@@ -35,3 +35,6 @@ yarn-error.log*
 .eslintcache
 dist/
 dist/
+
+# Local migration docs
+_docs/

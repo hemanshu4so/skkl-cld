@@ -204,9 +204,11 @@ export default function Inventory() {
 
   const handleSave = async () => {
 
+    let created = null;
+
     // QR inventory create flow
     try {
-      const created = await createItemWithIdentity(
+      created = await createItemWithIdentity(
         {
           name: form.name || "",
           category: form.category || "",
@@ -283,6 +285,22 @@ export default function Inventory() {
       } else {
         data.createdAt = serverTimestamp();
         const ref = await addDoc(collection(db, "products"), data);
+
+// --- QR LINK BACK TO PRODUCT DOC ---
+try {
+  if (ref?.id && created) {
+    await updateDoc(doc(db, "products", ref.id), {
+      itemId: created,
+      qrId: created,
+      qrLinkedAt: serverTimestamp(),
+    });
+
+    console.log("✅ PRODUCT LINKED TO QR:", created);
+  }
+} catch (e) {
+  console.error("[QR] product link failed:", e);
+}
+
       /* QR-AUTO:BEGIN add-product → QR item (additive, non-blocking) */
       try { await createQrItem(data, { productId: ref.id, productCollection: 'products' }); }
       catch (e) { console.error('[QR] item create failed (non-blocking):', e); }
@@ -723,7 +741,7 @@ function TagBody({ p, fmt }) {
           </div>
         )}
         {(fields.includes("barcodeQR") || fields.includes("qrOnly")) && p.barcode && (
-          <QRImage value={p.barcode} size={fmt.qrSize * 4} />
+          <QRImage value={p.itemId || p.qrId || p.barcode} size={fmt.qrSize * 4} />
         )}
       </div>
     </div>
