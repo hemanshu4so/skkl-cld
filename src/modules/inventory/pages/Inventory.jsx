@@ -22,6 +22,7 @@ import { useDebounced } from "../../../hooks/useDebounced";
 import useShortcut from "../../../hooks/useShortcut";
 import useAutoFocus from "../../../hooks/useAutoFocus";
 import QRImage from "../../../components/QRImage";
+import { itemCode } from "@shared/itemCode";
 import { createItemWithIdentity } from "@fb/items";
 import QrScanInput from "../components/QrScanInput";
 import { TAG_FORMATS, getFormat, FIELD_LABELS, SCALE } from "../../../lib/tagFormats";
@@ -740,8 +741,8 @@ function TagBody({ p, fmt }) {
             <div style={{ fontSize: 6, fontFamily: "monospace", textAlign: "center" }}>{p.barcode}</div>
           </div>
         )}
-        {(fields.includes("barcodeQR") || fields.includes("qrOnly")) && p.barcode && (
-          <QRImage value={p.itemId || p.qrId || p.barcode} size={fmt.qrSize * 4} />
+        {(fields.includes("barcodeQR") || fields.includes("qrOnly")) && itemCode(p) && (
+          <QRImage value={itemCode(p)} size={fmt.qrSize * 4} />
         )}
       </div>
     </div>

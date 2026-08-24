@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import QRImage from "../../../components/QRImage";
 import { SCALE, resolveField } from "../lib/barcodeTemplate";
 import { code128SVG } from "../lib/code128";
+import { itemCode } from "@shared/itemCode";
 
 function Box({ el, product, shop, selected, onClick }) {
   const style = { position:"absolute", left:(el.x||0)*SCALE, top:(el.y||0)*SCALE,
@@ -27,7 +28,7 @@ function Box({ el, product, shop, selected, onClick }) {
       break;
     }
     case "qr": {
-      const v=(product?.barcode||product?.sku||product?.id||"SAMPLE").toString();
+      const v=(itemCode(product)||product?.sku||product?.id||"SAMPLE").toString();
       const sz=Math.min((el.w||10)*SCALE,(el.h||10)*SCALE);
       body=<span style={{display:"block"}}><QRImage value={v} size={sz}/></span>;
       break;
