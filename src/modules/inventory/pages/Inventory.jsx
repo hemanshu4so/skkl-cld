@@ -663,7 +663,7 @@ try {
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a2e" }}>{p.name}</div>
-                      {p.barcode && <div style={{ fontSize: 11, color: "#aaa", fontFamily: "monospace" }}>{p.barcode}</div>}
+                      {itemCode(p) && <div style={{ fontSize: 11, color: "#aaa", fontFamily: "monospace" }}>{itemCode(p)}</div>}
                     </td>
                     <td style={{ padding: "12px 14px", fontSize: 11, fontFamily: "monospace", color: "#555" }}>{p.huid || "—"}</td>
                     <td style={{ padding: "12px 14px", fontSize: 12, color: "#555" }}>{p.itemType}</td>
@@ -738,7 +738,7 @@ function TagBody({ p, fmt }) {
         {(fields.includes("barcodeQR") || fields.includes("barcodeOnly")) && (
           <div style={{ flex: 1, overflow: "hidden" }}>
             <BarcodeStripes value={p.barcode} />
-            <div style={{ fontSize: 6, fontFamily: "monospace", textAlign: "center" }}>{p.barcode}</div>
+            <div style={{ fontSize: 6, fontFamily: "monospace", textAlign: "center" }}>{itemCode(p)}</div>
           </div>
         )}
         {(fields.includes("barcodeQR") || fields.includes("qrOnly")) && itemCode(p) && (
